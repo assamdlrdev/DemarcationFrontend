@@ -1,0 +1,54 @@
+.banner-container {
+display:flex;
+gap: 10px;
+justify-content: space-between;
+padding: 20px 24px;
+border-radius: 16px;
+border: 1px solid #8B9BC5;
+background: linear-gradient(270deg, #DAE8FF 0%, #FFF 137.38%);
+
+
+& .left-container {
+display: flex;
+align-items: center;
+}
+
+& .left-container img {
+    width: 226px;
+    height: 151px;
+}
+
+& .right-container {
+    & .title {
+    color: #D7874D;
+    font-family: "Playfair Display";
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 600;
+   }
+
+    & .desc {
+        color: #000;
+        font-family: "Roboto";
+        font-size: 16px;
+        font-style: normal;
+        font-weight: 400;
+    }
+    
+    & .info {
+        color: #8B9BC5;
+        font-family: Roboto;
+        font-size: 12px;
+        font-style: normal;
+        font-weight: 600;
+        background-color: #fff;
+        padding: 10px 20px;
+        border-radius: 40px;
+        border: 1px solid #8B9BC5;
+        margin-top: 20px;
+        width: fit-content;
+    }
+}
+
+}
+

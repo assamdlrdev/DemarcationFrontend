@@ -1,0 +1,26 @@
+* {
+  box-sizing: border-box;
+}
+
+#root {
+  width: 100%;
+  min-width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+body {
+  width: 100%;
+  min-width: 100%;
+  margin: 0;
+  padding: 0;
+  background: #F4F6FF;
+}
+
+.main-container{
+  flex: 1;
+  width: 70%;
+  margin: 0 auto;
+  padding: 24px 0 70px 0;
+}
