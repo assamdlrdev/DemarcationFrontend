@@ -33,8 +33,17 @@ const CitizenApplication = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [districtCode, setDistrictCode] = useState("");
+  const [subDivCode, setSubDivCode] = useState("");
+  const [circleCode, setCircleCode] = useState("");
+  const [mouzaCode, setMouzaCode] = useState("");
+  const [lotCode, setLotCode] = useState("");
   const [districtData, setDistrictData] = useState([]);
   const [subDivData, setSubDivData] = useState([]);
+  const [circleData, setCircleData] = useState([]);
+  const [mouzaData, setMouzaData] = useState([]);
+  const [lotData, setLotData] = useState([]);
+  const [villageData, setVillageData] = useState([]);
 
   useEffect(() => {
     getDistricts();
@@ -47,7 +56,7 @@ const CitizenApplication = () => {
       const response = await api.post("/get-districts", {
         signal: controller.signal }, // Attach the signal to the request
       );
-      console.log("Districts response:", response);
+      
       if(response?.data?.data?.status == 'y'){
         setDistrictData(response?.data?.data?.data || []);
       }
@@ -61,13 +70,14 @@ const CitizenApplication = () => {
 
   const handleDistrictChange = async (value: string) => {
     const controller = new AbortController();
+    setDistrictCode(value);
     const postData = { dist_code: value };
 
     try {
       const response = await api.post("/get-subdivs", postData, {
         signal: controller.signal }, // Attach the signal to the request
       );
-      console.log("Districts response:", response);
+      
       if(response?.data?.data?.status == 'y'){
         setSubDivData(response?.data?.data?.data || []);
       }
@@ -80,10 +90,96 @@ const CitizenApplication = () => {
     return () => controller.abort(); // Cleanup on unmount
   }
 
+  const handleSubDivChange = async (value: string) => {
+    const controller = new AbortController();
+    setSubDivCode(value);
+    const postData = { dist_code: districtCode, subdiv_code: value };
+
+    try {
+      const response = await api.post("/get-circles", postData, {
+        signal: controller.signal }, // Attach the signal to the request
+      );
+      
+      if(response?.data?.data?.status == 'y'){
+        setCircleData(response?.data?.data?.data || []);
+      }
+    } catch (err) {
+        setError("Failed to fetch data.");
+    } finally {
+      setLoading(false);
+    }
+
+    return () => controller.abort(); // Cleanup on unmount
+  }
+
+  const handleCircleChange = async (value: string) => {
+    const controller = new AbortController();
+    setCircleCode(value);
+    const postData = { dist_code: districtCode, subdiv_code: subDivCode, cir_code: value };
+
+    try {
+      const response = await api.post("/get-mouzas", postData, {
+        signal: controller.signal }, // Attach the signal to the request
+      );
+
+      if(response?.data?.data?.status == 'y'){
+        setMouzaData(response?.data?.data?.data || []);
+      }
+    } catch (err) {
+        setError("Failed to fetch data.");
+    } finally {
+      setLoading(false);
+    }
+
+    return () => controller.abort(); // Cleanup on unmount
+  }
+
+  const handleMouzaChange = async (value: string) => {
+    const controller = new AbortController();
+    setMouzaCode(value);
+    const postData = { dist_code: districtCode, subdiv_code: subDivCode, cir_code: circleCode, mouza_pargona_code: value };
+
+    try {
+      const response = await api.post("/get-lots", postData, {
+        signal: controller.signal }, // Attach the signal to the request
+      );
+
+      if(response?.data?.data?.status == 'y'){
+        setLotData(response?.data?.data?.data || []);
+      }
+    } catch (err) {
+        setError("Failed to fetch data.");
+    } finally {
+      setLoading(false);
+    }
+
+    return () => controller.abort(); // Cleanup on unmount
+  }
+
+  const handleLotChange = async (value: string) => {
+    const controller = new AbortController();
+    setLotCode(value);
+    const postData = { dist_code: districtCode, subdiv_code: subDivCode, cir_code: circleCode, mouza_pargona_code: mouzaCode, lot_no: value };
+
+    try {
+      const response = await api.post("/get-vills", postData, {
+        signal: controller.signal }, // Attach the signal to the request
+      );
+
+      if(response?.data?.data?.status == 'y'){
+        setVillageData(response?.data?.data?.data || []);
+      }
+    } catch (err) {
+        setError("Failed to fetch data.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const { control, watch, formState: { errors } } = useForm<FormData>({
     defaultValues: {
       district: '',
-      subDistrict: '',
+      subDivCode: '',
       circle: '',
       mouza: '',
       lot: '',
@@ -153,7 +249,12 @@ const CitizenApplication = () => {
                 <Select 
                   {...field}
                   label="Select District"
-                  onChange={(e) => handleDistrictChange(e.target.value)}
+                  onChange={
+                    (e) => {
+                      field.onChange(e);
+                      handleDistrictChange(e.target.value)
+                    }
+                  }
                 >
                   {
                     Object.entries(districtData)?.map(([key, district]) => {
@@ -169,15 +270,21 @@ const CitizenApplication = () => {
           />
           
           <Controller
-            name="subDistrict"
+            name="subDivCode"
             control={control}
             rules={{ required: 'Sub-district is required' }}
             render={({ field }) => (
-              <FormControl className="form-field" error={!!errors.subDistrict}>
-                <InputLabel>Sub-district</InputLabel>
+              <FormControl className="form-field" error={!!errors.subDivCode}>
+                <InputLabel>Sub-Division</InputLabel>
                 <Select 
                   {...field}
-                  label="Sub-district"
+                  label="Sub-Division"
+                  onChange={
+                    (e) => {
+                      field.onChange(e);
+                      handleSubDivChange(e.target.value)
+                    }
+                  }
                 >
                   {
                     subDivData?.map((item, key) => {
@@ -185,8 +292,8 @@ const CitizenApplication = () => {
                     })
                   }
                 </Select>
-                {errors.subDistrict && (
-                  <FormHelperText>{errors.subDistrict.message}</FormHelperText>
+                {errors.subDivCode && (
+                  <FormHelperText>{errors.subDivCode.message}</FormHelperText>
                 )}
               </FormControl>
             )}
@@ -202,9 +309,18 @@ const CitizenApplication = () => {
                 <Select 
                   {...field}
                   label="Circle"
+                  onChange={
+                    (e) => {
+                      field.onChange(e);
+                      handleCircleChange(e.target.value)
+                    }
+                  }
                 >
-                  <MenuItem value="circle1">Circle 1</MenuItem>
-                  <MenuItem value="circle2">Circle 2</MenuItem>
+                  {
+                    circleData?.map((item, key) => {
+                      return <MenuItem key={key} value={item.cir_code}>{item.loc_name}</MenuItem>
+                    })
+                  }
                 </Select>
                 {errors.circle && (
                   <FormHelperText>{errors.circle.message}</FormHelperText>
@@ -225,9 +341,18 @@ const CitizenApplication = () => {
                 <Select 
                   {...field}
                   label="Mouza"
+                  onChange={
+                    (e) => {
+                      field.onChange(e);
+                      handleMouzaChange(e.target.value)
+                    }
+                  }
                 >
-                  <MenuItem value="mouza1">Mouza 1</MenuItem>
-                  <MenuItem value="mouza2">Mouza 2</MenuItem>
+                  {
+                    mouzaData?.map((item, key) => {
+                      return <MenuItem key={key} value={item.mouza_code}>{item.loc_name}</MenuItem>
+                    })
+                  }
                 </Select>
                 {errors.mouza && (
                   <FormHelperText>{errors.mouza.message}</FormHelperText>
@@ -246,9 +371,18 @@ const CitizenApplication = () => {
                 <Select 
                   {...field}
                   label="Lot"
+                  onChange={
+                    (e) => {
+                      field.onChange(e);
+                      handleLotChange(e.target.value)
+                    }
+                  }
                 >
-                  <MenuItem value="lot1">Lot 1</MenuItem>
-                  <MenuItem value="lot2">Lot 2</MenuItem>
+                  {
+                    lotData?.map((item, key) => {
+                      return <MenuItem key={key} value={item.lot_no}>{item.loc_name}</MenuItem>
+                    })
+                  }
                 </Select>
                 {errors.lot && (
                   <FormHelperText>{errors.lot.message}</FormHelperText>
@@ -280,7 +414,7 @@ const CitizenApplication = () => {
         </div>
       </div>
       
-      {allFieldsSelected ? (
+      {villageData.length > 0 ? (
         <div className="table-section">
           <Table
             columns={[
@@ -288,8 +422,8 @@ const CitizenApplication = () => {
                 header: 'Sr. No.',
                 render: (_row, index) => index + 1
               },
-              { header: 'Village Name', accessor: 'villageName' },
-              { header: 'Mouza', accessor: 'mouza' },
+              { header: 'Village Name', accessor: 'loc_name' },
+              { header: 'Code', accessor: 'village_code' },
               {
                 header: 'Action',
                 render: (row) => (
@@ -303,7 +437,7 @@ const CitizenApplication = () => {
                 )
               }
             ]}
-            data={tableData}
+            data={villageData}
             className="table-container"
           />
         </div>
