@@ -7,7 +7,7 @@ import './style.scss';
 import mapInfoIcon from '../../../public/svg/info.svg';
 import rightArrowIcon from '../../../public/svg/icon right.svg';
 import axios from 'axios';
-import api from "../../api/axios"; 
+import api from "../../api/axios";
 
 interface FormData {
   district: string;
@@ -21,7 +21,7 @@ interface FormData {
 interface ModalFormData {
   pattaType: string
   pattaNumber: number | null
-  dagNumber:number | null
+  dagNumber: number | null
   bigha: number | null
   lessa: number | null
   katha: number | null
@@ -50,9 +50,13 @@ const CitizenApplication = () => {
   const [pattaNoData, setPattaNoData] = useState([]);
   const [dagData, setDagData] = useState([]);
   const [selectedDagDetails, setSelectedDagDetails] = useState({ areaB: '', areaL: '', areaK: '' });
+  const [pattadarData, setPattadarData] = useState([]);
+
+
 
   useEffect(() => {
     getDistricts();
+    getPattadarList();
   }, []);
 
   const getDistricts = async () => {
@@ -60,16 +64,49 @@ const CitizenApplication = () => {
 
     try {
       const response = await api.post("/get-districts", {
-        signal: controller.signal }, // Attach the signal to the request
+        signal: controller.signal
+      }, // Attach the signal to the request
       );
-      
-      if(response?.data?.data?.status == 'y'){
+
+      if (response?.data?.data?.status == 'y') {
         setDistrictData(response?.data?.data?.data || []);
       }
     } catch (err) {
-        setError("Failed to fetch data.");
+      setError("Failed to fetch data.");
     } finally {
       setLoading(false);
+    }
+    return () => controller.abort(); // Cleanup on unmount
+  };
+
+  const getPattadarList = async () => {
+    const controller = new AbortController();
+
+    const postData = {
+      dist_code: districtCode,
+      subdiv_code: subDivCode,
+      cir_code: subDivCode,
+      mouza_pargona_code: mouzaCode,
+      lot_no: lotNo,
+      vill_townprt_code: villTownprtCode,
+      patta_no: pattaNo,
+      patta_type_code: pattaType
+    };
+
+    try {
+      const response = await api.post("/get-pattadar-list", postData, {
+        signal: controller.signal
+      }, // Attach the signal to the request
+      );
+
+      if (response?.data?.data?.status == 'y') {
+        setPattadarData(response?.data?.data?.data || []);
+      }
+    } catch (err) {
+      setError("Failed to fetch data.");
+    } finally {
+      setLoading(false);
+      // console.log('Pattadar Data', pattadarData);
     }
     return () => controller.abort(); // Cleanup on unmount
   };
@@ -81,14 +118,15 @@ const CitizenApplication = () => {
 
     try {
       const response = await api.post("/get-subdivs", postData, {
-        signal: controller.signal }, // Attach the signal to the request
+        signal: controller.signal
+      }, // Attach the signal to the request
       );
-      
-      if(response?.data?.data?.status == 'y'){
+
+      if (response?.data?.data?.status == 'y') {
         setSubDivData(response?.data?.data?.data || []);
       }
     } catch (err) {
-        setError("Failed to fetch data.");
+      setError("Failed to fetch data.");
     } finally {
       setLoading(false);
     }
@@ -103,14 +141,15 @@ const CitizenApplication = () => {
 
     try {
       const response = await api.post("/get-circles", postData, {
-        signal: controller.signal }, // Attach the signal to the request
+        signal: controller.signal
+      }, // Attach the signal to the request
       );
-      
-      if(response?.data?.data?.status == 'y'){
+
+      if (response?.data?.data?.status == 'y') {
         setCircleData(response?.data?.data?.data || []);
       }
     } catch (err) {
-        setError("Failed to fetch data.");
+      setError("Failed to fetch data.");
     } finally {
       setLoading(false);
     }
@@ -125,14 +164,15 @@ const CitizenApplication = () => {
 
     try {
       const response = await api.post("/get-mouzas", postData, {
-        signal: controller.signal }, // Attach the signal to the request
+        signal: controller.signal
+      }, // Attach the signal to the request
       );
 
-      if(response?.data?.data?.status == 'y'){
+      if (response?.data?.data?.status == 'y') {
         setMouzaData(response?.data?.data?.data || []);
       }
     } catch (err) {
-        setError("Failed to fetch data.");
+      setError("Failed to fetch data.");
     } finally {
       setLoading(false);
     }
@@ -147,14 +187,15 @@ const CitizenApplication = () => {
 
     try {
       const response = await api.post("/get-lots", postData, {
-        signal: controller.signal }, // Attach the signal to the request
+        signal: controller.signal
+      }, // Attach the signal to the request
       );
 
-      if(response?.data?.data?.status == 'y'){
+      if (response?.data?.data?.status == 'y') {
         setLotData(response?.data?.data?.data || []);
       }
     } catch (err) {
-        setError("Failed to fetch data.");
+      setError("Failed to fetch data.");
     } finally {
       setLoading(false);
     }
@@ -169,14 +210,15 @@ const CitizenApplication = () => {
 
     try {
       const response = await api.post("/get-vills", postData, {
-        signal: controller.signal }, // Attach the signal to the request
+        signal: controller.signal
+      }, // Attach the signal to the request
       );
 
-      if(response?.data?.data?.status == 'y'){
+      if (response?.data?.data?.status == 'y') {
         setVillageData(response?.data?.data?.data || []);
       }
     } catch (err) {
-        setError("Failed to fetch data.");
+      setError("Failed to fetch data.");
     } finally {
       setLoading(false);
     }
@@ -190,14 +232,15 @@ const CitizenApplication = () => {
 
     try {
       const response = await api.post("/get-pattanos", postData, {
-        signal: controller.signal }, // Attach the signal to the request
+        signal: controller.signal
+      }, // Attach the signal to the request
       );
 
-      if(response?.data?.data?.status == 'y'){
+      if (response?.data?.data?.status == 'y') {
         setPattaNoData(response?.data?.data?.data || []);
       }
     } catch (err) {
-        setError("Failed to fetch data.");
+      setError("Failed to fetch data.");
     } finally {
       setLoading(false);
     }
@@ -212,6 +255,8 @@ const CitizenApplication = () => {
         lessa: selectedDag.dag_area_l || 0,
         katha: selectedDag.dag_area_k || 0,
       }]);
+
+      getPattadarList();
     }
   };
 
@@ -222,14 +267,15 @@ const CitizenApplication = () => {
 
     try {
       const response = await api.post("/get-dags", postData, {
-        signal: controller.signal }, // Attach the signal to the request
+        signal: controller.signal
+      }, // Attach the signal to the request
       );
 
-      if(response?.data?.data?.status == 'y'){
+      if (response?.data?.data?.status == 'y') {
         setDagData(response?.data?.data?.data || []);
       }
     } catch (err) {
-        setError("Failed to fetch data.");
+      setError("Failed to fetch data.");
     } finally {
       setLoading(false);
     }
@@ -264,12 +310,12 @@ const CitizenApplication = () => {
   const allModalFieldsSelected = watchModalValues.pattaType && watchModalValues.pattaNumber && watchModalValues.dagNumber;
 
   const watchedValues = watch();
-  const allFieldsSelected = 
-    watchedValues.district && 
-    watchedValues.subDistrict && 
-    watchedValues.circle && 
-    watchedValues.mouza && 
-    watchedValues.lot && 
+  const allFieldsSelected =
+    watchedValues.district &&
+    watchedValues.subDistrict &&
+    watchedValues.circle &&
+    watchedValues.mouza &&
+    watchedValues.lot &&
     watchedValues.villageType;
 
   // Mock data for table - replace with actual API call
@@ -285,14 +331,15 @@ const CitizenApplication = () => {
 
     try {
       const response = await api.post("/get-pattatypes-landclasses", postData, {
-        signal: controller.signal }, // Attach the signal to the request
+        signal: controller.signal
+      }, // Attach the signal to the request
       );
 
-      if(response?.data?.data?.status == 'y'){
+      if (response?.data?.data?.status == 'y') {
         setPattaTypeData(response?.data?.data?.data || []);
       }
     } catch (err) {
-        setError("Failed to fetch data.");
+      setError("Failed to fetch data.");
     } finally {
       setLoading(false);
     }
@@ -306,17 +353,55 @@ const CitizenApplication = () => {
     resetModal();
   };
 
-  const onModalSubmit = (data: ModalFormData) => {
-    console.log('Modal form data:', data);
-    // Handle modal form submission here
-    handleCloseModal();
+  // console.log("areaTableData: ", areaTableData);
+
+  const onModalSubmit = async (data: ModalFormData) => {
+
+    const controller = new AbortController();
+
+    const extraData = {
+      dist_code: districtCode,
+      subdiv_code: subDivCode,
+      cir_code: circleCode,
+      mouza_pargona_code: mouzaCode,
+      lot_no: lotNo,
+      vill_townprt_code: villTownprtCode,
+      dag_area_b: areaTableData[0].bigha,
+      dag_area_k: areaTableData[0].katha,
+      dag_area_lc: areaTableData[0].lessa,
+      land_class_code: '1',
+      land_photo: null
+    };
+
+    const finalData = { ...data, ...extraData };
+
+    console.log('Final submission data:', finalData);
+
+    try {
+      const response = await api.post("/store-application", finalData, {
+        signal: controller.signal
+      }, // Attach the signal to the request
+      );
+
+      if (response?.data?.data?.status == 'y') {
+        setPattadarData(response?.data?.data?.data || []);
+      }
+    } catch (err) {
+      setError("Failed to save data.", err);
+    } finally {
+      setLoading(false);
+      handleCloseModal();
+    }
+
+    return () => controller.abort(); // Cleanup on unmount
   };
-  console.log("dagData: ", dagData);
-  
+
+  // console.log("dagData: ", dagData);
+
   return (
     <div className="form-container">
       <div className="form-title">Fill All The Details</div>
-      
+
       <div className="form-fields">
         <div className="form-row">
           <Controller
@@ -326,7 +411,7 @@ const CitizenApplication = () => {
             render={({ field }) => (
               <FormControl className="form-field" error={!!errors.district}>
                 <InputLabel>Select District</InputLabel>
-                <Select 
+                <Select
                   {...field}
                   label="Select District"
                   onChange={
@@ -338,7 +423,7 @@ const CitizenApplication = () => {
                 >
                   {
                     Object.entries(districtData)?.map(([key, district]) => {
-                      return <MenuItem  key={key} value={ key }>{ district }</MenuItem>
+                      return <MenuItem key={key} value={key}>{district}</MenuItem>
                     })
                   }
                 </Select>
@@ -348,7 +433,7 @@ const CitizenApplication = () => {
               </FormControl>
             )}
           />
-          
+
           <Controller
             name="subDivCode"
             control={control}
@@ -356,7 +441,7 @@ const CitizenApplication = () => {
             render={({ field }) => (
               <FormControl className="form-field" error={!!errors.subDivCode}>
                 <InputLabel>Sub-Division</InputLabel>
-                <Select 
+                <Select
                   {...field}
                   label="Sub-Division"
                   onChange={
@@ -378,7 +463,7 @@ const CitizenApplication = () => {
               </FormControl>
             )}
           />
-          
+
           <Controller
             name="circle"
             control={control}
@@ -386,7 +471,7 @@ const CitizenApplication = () => {
             render={({ field }) => (
               <FormControl className="form-field" error={!!errors.circle}>
                 <InputLabel>Circle</InputLabel>
-                <Select 
+                <Select
                   {...field}
                   label="Circle"
                   onChange={
@@ -409,7 +494,7 @@ const CitizenApplication = () => {
             )}
           />
         </div>
-        
+
         <div className="form-row">
           <Controller
             name="mouza"
@@ -418,7 +503,7 @@ const CitizenApplication = () => {
             render={({ field }) => (
               <FormControl className="form-field" error={!!errors.mouza}>
                 <InputLabel>Mouza</InputLabel>
-                <Select 
+                <Select
                   {...field}
                   label="Mouza"
                   onChange={
@@ -440,7 +525,7 @@ const CitizenApplication = () => {
               </FormControl>
             )}
           />
-          
+
           <Controller
             name="lot"
             control={control}
@@ -448,7 +533,7 @@ const CitizenApplication = () => {
             render={({ field }) => (
               <FormControl className="form-field" error={!!errors.lot}>
                 <InputLabel>Lot</InputLabel>
-                <Select 
+                <Select
                   {...field}
                   label="Lot"
                   onChange={
@@ -472,12 +557,12 @@ const CitizenApplication = () => {
           />
         </div>
       </div>
-      
+
       {villageData.length > 0 ? (
         <div className="table-section">
           <Table
             columns={[
-              { 
+              {
                 header: 'Sr. No.',
                 render: (_row, index) => index + 1
               },
@@ -486,7 +571,7 @@ const CitizenApplication = () => {
               {
                 header: 'Action',
                 render: (row) => (
-                  <Button 
+                  <Button
                     className="action-button"
                     onClick={() => handleProceedClick(row.village_code)}
                   >
@@ -501,14 +586,14 @@ const CitizenApplication = () => {
           />
         </div>
       )
-      :(
-      <div className="map-placeholder">
-        <div className="map-dot">
-            <img src={mapInfoIcon} alt="map-dot" />
-        </div>
-        <div className="map-text">Please select the required fields to view the map</div>
-      </div>
-      )}
+        : (
+          <div className="map-placeholder">
+            <div className="map-dot">
+              <img src={mapInfoIcon} alt="map-dot" />
+            </div>
+            <div className="map-text">Please select the required fields to view the map</div>
+          </div>
+        )}
 
       <Modal
         open={modalOpen}
@@ -523,8 +608,8 @@ const CitizenApplication = () => {
             rules={{ required: 'Patta Type is required' }}
             render={({ field }) => (
               <FormControl className="modal-form-field" error={!!modalErrors.pattaType} fullWidth>
-                <InputLabel>Village Type</InputLabel>
-                <Select 
+                <InputLabel>Patta Type</InputLabel>
+                <Select
                   {...field}
                   label="Patta Type"
                   onChange={
@@ -546,15 +631,15 @@ const CitizenApplication = () => {
               </FormControl>
             )}
           />
-          
+
           <Controller
             name="pattaNumber"
             control={modalControl}
             rules={{ required: 'Patta Number is required' }}
             render={({ field }) => (
               <FormControl className="modal-form-field" error={!!modalErrors.pattaNumber} fullWidth>
-                <InputLabel>Plot Number</InputLabel>
-                <Select 
+                <InputLabel>Patta Number</InputLabel>
+                <Select
                   {...field}
                   label="Patta Number"
                   onChange={
@@ -576,7 +661,7 @@ const CitizenApplication = () => {
               </FormControl>
             )}
           />
-          
+
           <Controller
             name="dagNumber"
             control={modalControl}
@@ -584,7 +669,7 @@ const CitizenApplication = () => {
             render={({ field }) => (
               <FormControl className="modal-form-field" error={!!modalErrors.dagNumber} fullWidth>
                 <InputLabel>Dag Number</InputLabel>
-                <Select 
+                <Select
                   {...field}
                   label="Dag Number"
                   onChange={
@@ -606,86 +691,110 @@ const CitizenApplication = () => {
               </FormControl>
             )}
           />
+
+          <Controller
+            name="pattadarId"
+            control={modalControl}
+            rules={{ required: 'Pattadar Number is required' }}
+            render={({ field }) => (
+              <FormControl className="modal-form-field" error={!!modalErrors.pattadarId} fullWidth>
+                <InputLabel>Pattadar</InputLabel>
+                <Select
+                  {...field}
+                  label="Pattadar"
+                >
+                  {
+                    pattadarData?.map((item, key) => {
+                      return <MenuItem key={key} value={item.pdar_id}>{item.pdar_name}</MenuItem>
+                    })
+                  }
+                </Select>
+                {modalErrors.pattadarId && (
+                  <FormHelperText>{modalErrors.pattadarId.message}</FormHelperText>
+                )}
+              </FormControl>
+            )}
+          />
         </div>
- 
-        {!allModalFieldsSelected || areaTableData.length ==0 && <div className="modal-separator"></div>}
+
+        {!allModalFieldsSelected || areaTableData.length == 0 && <div className="modal-separator"></div>}
 
         {
-            allModalFieldsSelected && areaTableData.length > 0 && (
-                <>
-                <div className="area-table">
-                    <Table
-                        title="Area Information"
-                        columns={[
-                            { header: 'Bigha', accessor: 'bigha' },
-                            { header: 'Lessa', accessor: 'lessa' },
-                            { header: 'Katha', accessor: 'katha' }
-                        ]}
-                        data={areaTableData}
-                        className="table-container"
-                    />
+          allModalFieldsSelected && areaTableData.length > 0 && (
+            <>
+              <div className="area-table">
+                <Table
+                  title="Area Information"
+                  columns={[
+                    { header: 'Bigha', accessor: 'bigha' },
+                    { header: 'Lessa', accessor: 'lessa' },
+                    { header: 'Katha', accessor: 'katha' }
+                  ]}
+                  data={areaTableData}
+                  className="table-container"
+                />
+              </div>
+              <div className="new-land-area-container">
+                <div className="title">Enter New Land Area</div>
+                <div className="land-area-fields">
+                  <Controller
+                    name="bigha"
+                    control={modalControl}
+                    rules={{ required: 'Bigha is required' }}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label="Bigha"
+                        type="number"
+                        className="land-area-field"
+                        error={!!modalErrors.bigha}
+                        helperText={modalErrors.bigha?.message}
+                        fullWidth
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                      />
+                    )}
+                  />
+                  <Controller
+                    name="lessa"
+                    control={modalControl}
+                    rules={{ required: 'Lessa is required' }}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label="Lessa"
+                        type="number"
+                        className="land-area-field"
+                        error={!!modalErrors.lessa}
+                        helperText={modalErrors.lessa?.message}
+                        fullWidth
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                      />
+                    )}
+                  />
+                  <Controller
+                    name="katha"
+                    control={modalControl}
+                    rules={{ required: 'Katha is required' }}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label="Katha"
+                        type="number"
+                        className="land-area-field"
+                        error={!!modalErrors.katha}
+                        helperText={modalErrors.katha?.message}
+                        fullWidth
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                      />
+                    )}
+                  />
                 </div>
-                <div className="new-land-area-container">
-                    <div className="title">Enter New Land Area</div>
-                    <div className="land-area-fields">
-                        <Controller
-                            name="bigha"
-                            control={modalControl}
-                            rules={{ required: 'Bigha is required' }}
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    label="Bigha"
-                                    type="number"
-                                    className="land-area-field"
-                                    error={!!modalErrors.bigha}
-                                    helperText={modalErrors.bigha?.message}
-                                    fullWidth
-                                    value={field.value || ''}
-                                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                                />
-                            )}
-                        />
-                        <Controller
-                            name="lessa"
-                            control={modalControl}
-                            rules={{ required: 'Lessa is required' }}
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    label="Lessa"
-                                    type="number"
-                                    className="land-area-field"
-                                    error={!!modalErrors.lessa}
-                                    helperText={modalErrors.lessa?.message}
-                                    fullWidth
-                                    value={field.value || ''}
-                                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                                />
-                            )}
-                        />
-                        <Controller
-                            name="katha"
-                            control={modalControl}
-                            rules={{ required: 'Katha is required' }}
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    label="Katha"
-                                    type="number"
-                                    className="land-area-field"
-                                    error={!!modalErrors.katha}
-                                    helperText={modalErrors.katha?.message}
-                                    fullWidth
-                                    value={field.value || ''}
-                                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                                />
-                            )}
-                        />
-                    </div>
-                </div>
-                </>
-            )
+              </div>
+            </>
+          )
         }
 
       </Modal>
