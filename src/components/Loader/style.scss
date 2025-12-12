@@ -1,0 +1,27 @@
+.loader-full-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 40px;
+
+  .loader-text {
+    font-family: "Roboto";
+    font-size: 16px;
+    color: #666;
+    margin-top: 16px;
+  }
+}
+
+.loader-field {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  pointer-events: none;
+}
+

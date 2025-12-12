@@ -30,6 +30,7 @@
 
       .form-field {
         width: 100%;
+        position: relative;
 
         .MuiOutlinedInput-root {
           font-family: "Roboto";
@@ -125,6 +126,7 @@
 
   .modal-form-field {
     width: 100%;
+    position: relative;
 
     .MuiOutlinedInput-root {
       font-family: "Roboto";
