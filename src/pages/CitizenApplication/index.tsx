@@ -53,12 +53,12 @@ const CitizenApplication = () => {
   const [dagData, setDagData] = useState([]);
   const [selectedDagDetails, setSelectedDagDetails] = useState({ areaB: '', areaL: '', areaK: '' });
   const [pattadarData, setPattadarData] = useState([]);
+  const [applicationResponse, setApplicationResponse] = useState("");
 
 
 
   useEffect(() => {
     getDistricts();
-    getPattadarList();
   }, []);
 
   const getDistricts = async () => {
@@ -320,11 +320,6 @@ const CitizenApplication = () => {
     watchedValues.lot &&
     watchedValues.villageType;
 
-  // Mock data for table - replace with actual API call
-  const tableData = allFieldsSelected ? [
-
-  ] : [];
-
   const handleProceedClick = async (value) => {
     resetModal();
     const controller = new AbortController();
@@ -351,6 +346,7 @@ const CitizenApplication = () => {
   };
 
   const handleCloseModal = () => {
+    setIsModalProceedClicked(false);
     setModalOpen(false);
     resetModal();
   };
@@ -378,21 +374,21 @@ const CitizenApplication = () => {
     const finalData = { ...data, ...extraData };
 
     console.log('Final submission data:', finalData);
-
+    
     try {
-      const response = await api.post("/store-application", finalData, {
-        signal: controller.signal
-      }, // Attach the signal to the request
+      const response = await api.post("/store-application",
+         finalData, 
+         { signal: controller.signal},
       );
-
-      if (response?.data?.data?.status == 'y') {
-        setPattadarData(response?.data?.data?.data || []);
-      }
+      console.log("err?.response?: ", response?.data?.data?.message);
+      setApplicationResponse(response?.data?.data?.message);
+      
     } catch (err) {
-      setError("Failed to save data.", err);
+      console.log("err?.response?: ", err?.response);
+      setApplicationResponse(err?.response?.data?.data?.message || "Failed to submit application.");
     } finally {
       setLoading(false);
-      handleCloseModal();
+      setIsModalProceedClicked(true);
     }
 
     return () => controller.abort(); // Cleanup on unmount
@@ -601,7 +597,7 @@ const CitizenApplication = () => {
         open={modalOpen}
         onClose={handleCloseModal}
         title="Land Area Information"
-        onSubmit={handleModalSubmit(onModalSubmit)}
+        onSubmit={!isModalProceedClicked ? handleModalSubmit(onModalSubmit) : undefined}
         customFooter={
           <Button
             type="submit"
@@ -732,7 +728,7 @@ const CitizenApplication = () => {
         {!allModalFieldsSelected || areaTableData.length ==0 && <div className="modal-separator"></div>}
 
         {
-!isModalProceedClicked ? (
+        !isModalProceedClicked ? (
              allModalFieldsSelected && areaTableData.length > 0 ? (
                 <>
                 <div className="area-table">
@@ -740,8 +736,8 @@ const CitizenApplication = () => {
                         title="Area Information"
                         columns={[
                             { header: 'Bigha', accessor: 'bigha' },
-                            { header: 'Lessa', accessor: 'lessa' },
-                            { header: 'Katha', accessor: 'katha' }
+                            { header: 'Katha', accessor: 'katha' },
+                            { header: 'Lessa', accessor: 'lessa' }
                         ]}
                         data={areaTableData}
                         className="table-container"
@@ -819,7 +815,7 @@ const CitizenApplication = () => {
             : (
             <div className='success-container'>
                 <img src='../../../public/images/success.png' alt='success' />
-                <div className="text">Your request has been submitted successfully.</div>
+                <div className="text">{ applicationResponse }</div>
                 </div>
         )
         }
