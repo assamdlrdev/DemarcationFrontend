@@ -169,3 +169,26 @@
   }
 }
 
+
+
+.success-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  flex-direction: column;
+  gap: 20px;
+  
+  .text {
+    color: #000;
+    font-family: "Playfair Display";
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 500;
+  }
+  
+  img {
+    width: 173px;
+    height: 173px;
+  }
+}

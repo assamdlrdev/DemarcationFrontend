@@ -8,6 +8,7 @@ import mapInfoIcon from '../../../public/svg/info.svg';
 import rightArrowIcon from '../../../public/svg/icon right.svg';
 import axios from 'axios';
 import api from "../../api/axios"; 
+import errorIcon from '../../../public/svg/empty-img-gray.svg';
 
 interface FormData {
   district: string;
@@ -28,6 +29,7 @@ interface ModalFormData {
 }
 
 const CitizenApplication = () => {
+  const [isModalProceedClicked,setIsModalProceedClicked] = useState(false);
   const [areaTableData, setAreaTableData] = useState([{ bigha: 0, lessa: 0, katha: 0 }]);
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -308,8 +310,9 @@ const CitizenApplication = () => {
 
   const onModalSubmit = (data: ModalFormData) => {
     console.log('Modal form data:', data);
+    setIsModalProceedClicked(true);
     // Handle modal form submission here
-    handleCloseModal();
+    // handleCloseModal();
   };
   console.log("dagData: ", dagData);
   
@@ -515,8 +518,17 @@ const CitizenApplication = () => {
         onClose={handleCloseModal}
         title="Land Area Information"
         onSubmit={handleModalSubmit(onModalSubmit)}
+        customFooter={
+          <Button
+            type="submit"
+            className= {isModalProceedClicked ? "modal-close-button" : "modal-proceed-button"}
+            fullWidth
+          >
+            {!isModalProceedClicked ? 'Proceed' : 'CLOSE'}
+          </Button>
+        }
       >
-        <div className="modal-form-fields">
+        {!isModalProceedClicked && <div className="modal-form-fields">
           <Controller
             name="pattaType"
             control={modalControl}
@@ -607,11 +619,13 @@ const CitizenApplication = () => {
             )}
           />
         </div>
+        }
  
         {!allModalFieldsSelected || areaTableData.length ==0 && <div className="modal-separator"></div>}
 
         {
-            allModalFieldsSelected && areaTableData.length > 0 && (
+!isModalProceedClicked ? (
+             allModalFieldsSelected && areaTableData.length > 0 ? (
                 <>
                 <div className="area-table">
                     <Table
@@ -685,7 +699,21 @@ const CitizenApplication = () => {
                     </div>
                 </div>
                 </>
-            )
+            ): (
+                <div className="error-message-container">
+                    <div className="error-icon">
+                        <img src={errorIcon} alt="error" />
+                    </div>
+                    <div className="error-text">No Data available</div>
+                </div>
+            ))
+            
+            : (
+            <div className='success-container'>
+                <img src='../../../public/images/success.png' alt='success' />
+                <div className="text">Your request has been submitted successfully.</div>
+                </div>
+        )
         }
 
       </Modal>
