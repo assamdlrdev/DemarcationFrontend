@@ -7,7 +7,8 @@ import './style.scss';
 import mapInfoIcon from '../../../public/svg/info.svg';
 import rightArrowIcon from '../../../public/svg/icon right.svg';
 import axios from 'axios';
-import api from "../../api/axios";
+import api from "../../api/axios"; 
+import errorIcon from '../../../public/svg/empty-img-gray.svg';
 
 interface FormData {
   district: string;
@@ -28,6 +29,7 @@ interface ModalFormData {
 }
 
 const CitizenApplication = () => {
+  const [isModalProceedClicked,setIsModalProceedClicked] = useState(false);
   const [areaTableData, setAreaTableData] = useState([{ bigha: 0, lessa: 0, katha: 0 }]);
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -600,8 +602,17 @@ const CitizenApplication = () => {
         onClose={handleCloseModal}
         title="Land Area Information"
         onSubmit={handleModalSubmit(onModalSubmit)}
+        customFooter={
+          <Button
+            type="submit"
+            className= {isModalProceedClicked ? "modal-close-button" : "modal-proceed-button"}
+            fullWidth
+          >
+            {!isModalProceedClicked ? 'Proceed' : 'CLOSE'}
+          </Button>
+        }
       >
-        <div className="modal-form-fields">
+        {!isModalProceedClicked && <div className="modal-form-fields">
           <Controller
             name="pattaType"
             control={modalControl}
@@ -716,85 +727,101 @@ const CitizenApplication = () => {
             )}
           />
         </div>
-
-        {!allModalFieldsSelected || areaTableData.length == 0 && <div className="modal-separator"></div>}
+        }
+ 
+        {!allModalFieldsSelected || areaTableData.length ==0 && <div className="modal-separator"></div>}
 
         {
-          allModalFieldsSelected && areaTableData.length > 0 && (
-            <>
-              <div className="area-table">
-                <Table
-                  title="Area Information"
-                  columns={[
-                    { header: 'Bigha', accessor: 'bigha' },
-                    { header: 'Lessa', accessor: 'lessa' },
-                    { header: 'Katha', accessor: 'katha' }
-                  ]}
-                  data={areaTableData}
-                  className="table-container"
-                />
-              </div>
-              <div className="new-land-area-container">
-                <div className="title">Enter New Land Area</div>
-                <div className="land-area-fields">
-                  <Controller
-                    name="bigha"
-                    control={modalControl}
-                    rules={{ required: 'Bigha is required' }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Bigha"
-                        type="number"
-                        className="land-area-field"
-                        error={!!modalErrors.bigha}
-                        helperText={modalErrors.bigha?.message}
-                        fullWidth
-                        value={field.value}
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                      />
-                    )}
-                  />
-                  <Controller
-                    name="lessa"
-                    control={modalControl}
-                    rules={{ required: 'Lessa is required' }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Lessa"
-                        type="number"
-                        className="land-area-field"
-                        error={!!modalErrors.lessa}
-                        helperText={modalErrors.lessa?.message}
-                        fullWidth
-                        value={field.value}
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                      />
-                    )}
-                  />
-                  <Controller
-                    name="katha"
-                    control={modalControl}
-                    rules={{ required: 'Katha is required' }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Katha"
-                        type="number"
-                        className="land-area-field"
-                        error={!!modalErrors.katha}
-                        helperText={modalErrors.katha?.message}
-                        fullWidth
-                        value={field.value}
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                      />
-                    )}
-                  />
+!isModalProceedClicked ? (
+             allModalFieldsSelected && areaTableData.length > 0 ? (
+                <>
+                <div className="area-table">
+                    <Table
+                        title="Area Information"
+                        columns={[
+                            { header: 'Bigha', accessor: 'bigha' },
+                            { header: 'Lessa', accessor: 'lessa' },
+                            { header: 'Katha', accessor: 'katha' }
+                        ]}
+                        data={areaTableData}
+                        className="table-container"
+                    />
                 </div>
-              </div>
-            </>
-          )
+                <div className="new-land-area-container">
+                    <div className="title">Enter New Land Area</div>
+                    <div className="land-area-fields">
+                        <Controller
+                            name="bigha"
+                            control={modalControl}
+                            rules={{ required: 'Bigha is required' }}
+                            render={({ field }) => (
+                                <TextField
+                                    {...field}
+                                    label="Bigha"
+                                    type="number"
+                                    className="land-area-field"
+                                    error={!!modalErrors.bigha}
+                                    helperText={modalErrors.bigha?.message}
+                                    fullWidth
+                                    value={field.value || ''}
+                                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                                />
+                            )}
+                        />
+                        <Controller
+                            name="lessa"
+                            control={modalControl}
+                            rules={{ required: 'Lessa is required' }}
+                            render={({ field }) => (
+                                <TextField
+                                    {...field}
+                                    label="Lessa"
+                                    type="number"
+                                    className="land-area-field"
+                                    error={!!modalErrors.lessa}
+                                    helperText={modalErrors.lessa?.message}
+                                    fullWidth
+                                    value={field.value || ''}
+                                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                                />
+                            )}
+                        />
+                        <Controller
+                            name="katha"
+                            control={modalControl}
+                            rules={{ required: 'Katha is required' }}
+                            render={({ field }) => (
+                                <TextField
+                                    {...field}
+                                    label="Katha"
+                                    type="number"
+                                    className="land-area-field"
+                                    error={!!modalErrors.katha}
+                                    helperText={modalErrors.katha?.message}
+                                    fullWidth
+                                    value={field.value || ''}
+                                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                                />
+                            )}
+                        />
+                    </div>
+                </div>
+                </>
+            ): (
+                <div className="error-message-container">
+                    <div className="error-icon">
+                        <img src={errorIcon} alt="error" />
+                    </div>
+                    <div className="error-text">No Data available</div>
+                </div>
+            ))
+            
+            : (
+            <div className='success-container'>
+                <img src='../../../public/images/success.png' alt='success' />
+                <div className="text">Your request has been submitted successfully.</div>
+                </div>
+        )
         }
 
       </Modal>

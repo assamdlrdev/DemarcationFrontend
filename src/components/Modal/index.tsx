@@ -1,4 +1,5 @@
-import { ReactNode, useEffect } from 'react';
+import { useEffect, cloneElement, isValidElement } from 'react';
+import type { ReactNode } from 'react';
 import './style.scss';
 import closeIcon from '../../../public/svg/close-icon.svg';
 
@@ -9,9 +10,10 @@ interface ModalProps {
   children: ReactNode;
   onSubmit?: (e: React.FormEvent<HTMLFormElement>) => void;
   submitButtonText?: string;
+  customFooter?: ReactNode;
 }
 
-const Modal = ({ open, onClose, title, children, onSubmit, submitButtonText = 'Proceed' }: ModalProps) => {
+const Modal = ({ open, onClose, title, children, onSubmit, submitButtonText = 'Proceed', customFooter }: ModalProps) => {
   useEffect(() => {
     if (open) {
       document.body.style.overflow = 'hidden';
@@ -32,22 +34,7 @@ const Modal = ({ open, onClose, title, children, onSubmit, submitButtonText = 'P
     }
   };
 
-  const content = onSubmit ? (
-    <form onSubmit={onSubmit} className="modal-form">
-      <div className="modal-content-inner">
-        {children}
-      </div>
-      <div className="modal-actions">
-        <button type="submit" className="modal-proceed-button">
-          {submitButtonText}
-        </button>
-      </div>
-    </form>
-  ) : (
-    <div className="modal-content-inner">
-      {children}
-    </div>
-  );
+  const formId = onSubmit ? 'modal-form' : undefined;
 
   return (
     <div className="modal-backdrop" onClick={handleBackdropClick}>
@@ -64,12 +51,38 @@ const Modal = ({ open, onClose, title, children, onSubmit, submitButtonText = 'P
           </button>
         </div>
         <div className="modal-body">
-          {content}
+          {onSubmit ? (
+            <form id={formId} onSubmit={onSubmit} className="modal-form">
+              <div className="modal-content-inner">
+                {children}
+              </div>
+            </form>
+          ) : (
+            <div className="modal-content-inner">
+              {children}
+            </div>
+          )}
         </div>
+        {onSubmit && (
+          <div className="modal-actions">
+            {customFooter ? (
+              <div style={{ width: '100%' }}>
+                {isValidElement(customFooter) && 
+                 (customFooter as React.ReactElement<any>).props?.type === 'submit'
+                  ? cloneElement(customFooter as React.ReactElement<any>, { form: formId })
+                  : customFooter
+                }
+              </div>
+            ) : (
+              <button type="submit" form={formId} className="modal-proceed-button">
+                {submitButtonText}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default Modal;
-

@@ -60,7 +60,7 @@
       font-family: "Roboto";
       font-size: 14px;
       text-transform: none;
-      color: #F48E5F;
+      color: #f48e5f;
       padding: 4px 8px;
       min-width: auto;
       display: flex;
@@ -79,8 +79,8 @@
   }
 
   .action-button:hover {
-   transform: scale(1.05);
-   transition: transform 0.3s ease;
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
   }
 
   .map-placeholder {
@@ -110,11 +110,10 @@
     }
   }
 
-  .modal-separator{
-    border-bottom: 2px dashed #C4C4C4;
+  .modal-separator {
+    border-bottom: 2px dashed #c4c4c4;
     padding-bottom: 15px;
   }
-
 }
 
 // Modal form fields styles (used inside Modal component)
@@ -169,3 +168,32 @@
   }
 }
 
+.success-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  flex-direction: column;
+  gap: 20px;
+  
+  .text {
+    color: #000;
+    font-family: "Playfair Display";
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 500;
+  }
+  
+  img {
+    width: 173px;
+    height: 173px;
+  }
+}
+
+.error-message-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  flex-direction: column;
+}
