@@ -27,9 +27,8 @@ interface ModalFormData {
   katha: number | null
 }
 
-const areaTableData = [{bigha:0,lessa:12,katha:12}];
-
 const CitizenApplication = () => {
+  const [areaTableData, setAreaTableData] = useState([{ bigha: 0, lessa: 0, katha: 0 }]);
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -37,13 +36,20 @@ const CitizenApplication = () => {
   const [subDivCode, setSubDivCode] = useState("");
   const [circleCode, setCircleCode] = useState("");
   const [mouzaCode, setMouzaCode] = useState("");
-  const [lotCode, setLotCode] = useState("");
+  const [lotNo, setLotNo] = useState("");
+  const [pattaType, setPattaType] = useState("");
+  const [pattaNo, setPattaNo] = useState("");
+  const [villTownprtCode, setVillTownprtCode] = useState("");
+  const [pattaTypeData, setPattaTypeData] = useState("");
   const [districtData, setDistrictData] = useState([]);
   const [subDivData, setSubDivData] = useState([]);
   const [circleData, setCircleData] = useState([]);
   const [mouzaData, setMouzaData] = useState([]);
   const [lotData, setLotData] = useState([]);
   const [villageData, setVillageData] = useState([]);
+  const [pattaNoData, setPattaNoData] = useState([]);
+  const [dagData, setDagData] = useState([]);
+  const [selectedDagDetails, setSelectedDagDetails] = useState({ areaB: '', areaL: '', areaK: '' });
 
   useEffect(() => {
     getDistricts();
@@ -158,7 +164,7 @@ const CitizenApplication = () => {
 
   const handleLotChange = async (value: string) => {
     const controller = new AbortController();
-    setLotCode(value);
+    setLotNo(value);
     const postData = { dist_code: districtCode, subdiv_code: subDivCode, cir_code: circleCode, mouza_pargona_code: mouzaCode, lot_no: value };
 
     try {
@@ -174,6 +180,60 @@ const CitizenApplication = () => {
     } finally {
       setLoading(false);
     }
+    return () => controller.abort(); // Cleanup on unmount
+  }
+
+  const handlePattaTypeChange = async (value: string) => {
+    const controller = new AbortController();
+    setPattaType(value);
+    const postData = { dist_code: districtCode, subdiv_code: subDivCode, cir_code: circleCode, mouza_pargona_code: mouzaCode, lot_no: lotNo, vill_townprt_code: villTownprtCode, patta_type_code: value };
+
+    try {
+      const response = await api.post("/get-pattanos", postData, {
+        signal: controller.signal }, // Attach the signal to the request
+      );
+
+      if(response?.data?.data?.status == 'y'){
+        setPattaNoData(response?.data?.data?.data || []);
+      }
+    } catch (err) {
+        setError("Failed to fetch data.");
+    } finally {
+      setLoading(false);
+    }
+    return () => controller.abort(); // Cleanup on unmount
+  }
+
+  const handleSelectChange = (value: string) => {
+    const selectedDag = dagData.find(item => item.dag_no === value);
+    if (selectedDag) {
+      setAreaTableData([{
+        bigha: selectedDag.dag_area_b || 0,
+        lessa: selectedDag.dag_area_l || 0,
+        katha: selectedDag.dag_area_k || 0,
+      }]);
+    }
+  };
+
+  const handlePattaNoChange = async (value: string) => {
+    const controller = new AbortController();
+    setPattaNo(value);
+    const postData = { dist_code: districtCode, subdiv_code: subDivCode, cir_code: circleCode, mouza_pargona_code: mouzaCode, lot_no: lotNo, vill_townprt_code: villTownprtCode };
+
+    try {
+      const response = await api.post("/get-dags", postData, {
+        signal: controller.signal }, // Attach the signal to the request
+      );
+
+      if(response?.data?.data?.status == 'y'){
+        setDagData(response?.data?.data?.data || []);
+      }
+    } catch (err) {
+        setError("Failed to fetch data.");
+    } finally {
+      setLoading(false);
+    }
+    return () => controller.abort(); // Cleanup on unmount
   }
 
   const { control, watch, formState: { errors } } = useForm<FormData>({
@@ -217,9 +277,28 @@ const CitizenApplication = () => {
 
   ] : [];
 
-  const handleProceedClick = () => {
+  const handleProceedClick = async (value) => {
     resetModal();
+    const controller = new AbortController();
+    const postData = { dist_code: districtCode };
+    setVillTownprtCode(value);
+
+    try {
+      const response = await api.post("/get-pattatypes-landclasses", postData, {
+        signal: controller.signal }, // Attach the signal to the request
+      );
+
+      if(response?.data?.data?.status == 'y'){
+        setPattaTypeData(response?.data?.data?.data || []);
+      }
+    } catch (err) {
+        setError("Failed to fetch data.");
+    } finally {
+      setLoading(false);
+    }
+
     setModalOpen(true);
+    return () => controller.abort(); // Cleanup on unmount
   };
 
   const handleCloseModal = () => {
@@ -232,6 +311,7 @@ const CitizenApplication = () => {
     // Handle modal form submission here
     handleCloseModal();
   };
+  console.log("dagData: ", dagData);
   
   return (
     <div className="form-container">
@@ -390,27 +470,6 @@ const CitizenApplication = () => {
               </FormControl>
             )}
           />
-          
-          <Controller
-            name="villageType"
-            control={control}
-            rules={{ required: 'Village Type is required' }}
-            render={({ field }) => (
-              <FormControl className="form-field" error={!!errors.villageType}>
-                <InputLabel>Village Type</InputLabel>
-                <Select 
-                  {...field}
-                  label="Village Type"
-                >
-                  <MenuItem value="type1">Type 1</MenuItem>
-                  <MenuItem value="type2">Type 2</MenuItem>
-                </Select>
-                {errors.villageType && (
-                  <FormHelperText>{errors.villageType.message}</FormHelperText>
-                )}
-              </FormControl>
-            )}
-          />
         </div>
       </div>
       
@@ -429,7 +488,7 @@ const CitizenApplication = () => {
                 render: (row) => (
                   <Button 
                     className="action-button"
-                    onClick={handleProceedClick}
+                    onClick={() => handleProceedClick(row.village_code)}
                   >
                     {row.action}
                     <img src={rightArrowIcon} alt="right arrow" className="action-icon" />
@@ -468,10 +527,18 @@ const CitizenApplication = () => {
                 <Select 
                   {...field}
                   label="Patta Type"
+                  onChange={
+                    (e) => {
+                      field.onChange(e);
+                      handlePattaTypeChange(e.target.value)
+                    }
+                  }
                 >
-                  <MenuItem value="pata-type-1">Pata Type 1</MenuItem>
-                  <MenuItem value="pata-type-2">Pata Type 2</MenuItem>
-                  <MenuItem value="pata-type-3">Pata Type 3</MenuItem>
+                  {
+                    pattaTypeData?.patta_types?.map((item, key) => {
+                      return <MenuItem key={key} value={item.type_code}>{item.patta_type}</MenuItem>
+                    })
+                  }
                 </Select>
                 {modalErrors.pattaType && (
                   <FormHelperText>{modalErrors.pattaType.message}</FormHelperText>
@@ -490,12 +557,18 @@ const CitizenApplication = () => {
                 <Select 
                   {...field}
                   label="Patta Number"
+                  onChange={
+                    (e) => {
+                      field.onChange(e);
+                      handlePattaNoChange(e.target.value)
+                    }
+                  }
                 >
-                  <MenuItem value="12">12</MenuItem>
-                  <MenuItem value="13">13</MenuItem>
-                  <MenuItem value="14">14</MenuItem>
-                  <MenuItem value="15">15</MenuItem>
-                  <MenuItem value="16">16</MenuItem>
+                  {
+                    pattaNoData?.map((item, key) => {
+                      return <MenuItem key={key} value={item.patta_no}>{item.patta_no}</MenuItem>
+                    })
+                  }
                 </Select>
                 {modalErrors.pattaNumber && (
                   <FormHelperText>{modalErrors.pattaNumber.message}</FormHelperText>
@@ -510,15 +583,22 @@ const CitizenApplication = () => {
             rules={{ required: 'Dag Number is required' }}
             render={({ field }) => (
               <FormControl className="modal-form-field" error={!!modalErrors.dagNumber} fullWidth>
-                <InputLabel>Thana/Mandal</InputLabel>
+                <InputLabel>Dag Number</InputLabel>
                 <Select 
                   {...field}
                   label="Dag Number"
+                  onChange={
+                    (e) => {
+                      field.onChange(e);
+                      handleSelectChange(e.target.value)
+                    }
+                  }
                 >
-                  <MenuItem value="thana-1">Thana 1</MenuItem>
-                  <MenuItem value="thana-2">Thana 2</MenuItem>
-                  <MenuItem value="mandal-1">Mandal 1</MenuItem>
-                  <MenuItem value="mandal-2">Mandal 2</MenuItem>
+                  {
+                    dagData?.map((item, key) => {
+                      return <MenuItem key={key} value={item.dag_no}>{item.dag_no}</MenuItem>
+                    })
+                  }
                 </Select>
                 {modalErrors.dagNumber && (
                   <FormHelperText>{modalErrors.dagNumber.message}</FormHelperText>
