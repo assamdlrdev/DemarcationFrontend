@@ -505,7 +505,6 @@ const CitizenApplication = () => {
          },
       );
 
-      return false;
       console.log("err?.response?: ", response?.data?.data?.message);
       setApplicationResponse(response?.data?.data?.message);
       
@@ -514,6 +513,7 @@ const CitizenApplication = () => {
       console.log("err?.response?: ", err?.response);
       setApplicationResponse(err?.response?.data?.data?.message || "Failed to submit application.");
     } finally {
+      setEkhajanaPrice(0);
       setLoading(false);
       setIsModalProceedClicked(true);
     }
