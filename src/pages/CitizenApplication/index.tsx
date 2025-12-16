@@ -392,7 +392,7 @@ const CitizenApplication = () => {
   const { control, watch, formState: { errors } } = useForm<FormData>({
     defaultValues: {
       district: '',
-      subDivCode: '',
+      subDivCode: "",
       circle: '',
       mouza: '',
       lot: '',
@@ -403,12 +403,13 @@ const CitizenApplication = () => {
 
   const { control: modalControl, handleSubmit: handleModalSubmit, watch: watchModal, formState: { errors: modalErrors }, reset: resetModal } = useForm<ModalFormData>({
     defaultValues: {
-      pattaType: '',
-      pattaNumber: null,
-      dagNumber: null,
-      bigha: null,
-      lessa: null,
-      katha: null,
+      pattadarId: "",
+      pattaType: "",
+      pattaNumber: "",
+      dagNumber: "",
+      bigha: 0,
+      lessa: 0,
+      katha: 0,
     },
     mode: 'onChange',
   });
@@ -838,7 +839,7 @@ const CitizenApplication = () => {
                   onChange={
                     (e) => {
                       field.onChange(e);
-                      handlePattaDarChange(e.target.value)
+                      // handlePattaDarChange(e.target.value ?? '')
                     }
                   }
                 >
