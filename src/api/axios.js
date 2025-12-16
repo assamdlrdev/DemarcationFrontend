@@ -4,9 +4,9 @@ import axios from "axios";
 const api = axios.create({
   baseURL: "http://127.0.0.1:8000/api/", // Set your base API URL
   timeout: 10000, // Optional: Set request timeout
-  headers: {
-    "Content-Type": "application/json",
-  },
+  // headers: {
+  //   "Content-Type": "application/json",
+  // },
 });
 
 // Optional: Axios Interceptors (for authentication, etc.)
@@ -16,6 +16,14 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`; // Attach token if available
     }
+
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+    } else {
+      // Normal JSON request
+      config.headers["Content-Type"] = "application/json";
+    }
+    
     return config;
   },
   (error) => {

@@ -9,6 +9,7 @@ import rightArrowIcon from '../../../public/svg/icon right.svg';
 import axios from 'axios';
 import api from "../../api/axios"; 
 import errorIcon from '../../../public/svg/empty-img-gray.svg';
+import Loader from '../../components/Loader';
 
 interface FormData {
   district: string;
@@ -33,9 +34,11 @@ const CitizenApplication = () => {
   const [areaTableData, setAreaTableData] = useState([{ bigha: 0, lessa: 0, katha: 0 }]);
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [districtCode, setDistrictCode] = useState("");
+  const [error, setError] = useState(false);
+  const [ekhajanaReceiptNumber, setEkhajanaReceiptNumber] = useState("");
+  const [ekhajanaPrice, setEkhajanaPrice] = useState(0);
   const [subDivCode, setSubDivCode] = useState("");
+  const [districtCode, setDistrictCode] = useState("");
   const [circleCode, setCircleCode] = useState("");
   const [mouzaCode, setMouzaCode] = useState("");
   const [lotNo, setLotNo] = useState("");
@@ -74,9 +77,9 @@ const CitizenApplication = () => {
         setDistrictData(response?.data?.data?.data || []);
       }
     } catch (err) {
-      setError("Failed to fetch data.");
+      setError(true);
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
     return () => controller.abort(); // Cleanup on unmount
   };
@@ -105,7 +108,7 @@ const CitizenApplication = () => {
         setPattadarData(response?.data?.data?.data || []);
       }
     } catch (err) {
-      setError("Failed to fetch data.");
+      setError(true);
     } finally {
       setLoading(false);
       // console.log('Pattadar Data', pattadarData);
@@ -128,7 +131,7 @@ const CitizenApplication = () => {
         setSubDivData(response?.data?.data?.data || []);
       }
     } catch (err) {
-      setError("Failed to fetch data.");
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -151,7 +154,7 @@ const CitizenApplication = () => {
         setCircleData(response?.data?.data?.data || []);
       }
     } catch (err) {
-      setError("Failed to fetch data.");
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -174,7 +177,7 @@ const CitizenApplication = () => {
         setMouzaData(response?.data?.data?.data || []);
       }
     } catch (err) {
-      setError("Failed to fetch data.");
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -197,7 +200,7 @@ const CitizenApplication = () => {
         setLotData(response?.data?.data?.data || []);
       }
     } catch (err) {
-      setError("Failed to fetch data.");
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -220,7 +223,7 @@ const CitizenApplication = () => {
         setVillageData(response?.data?.data?.data || []);
       }
     } catch (err) {
-      setError("Failed to fetch data.");
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -242,7 +245,7 @@ const CitizenApplication = () => {
         setPattaNoData(response?.data?.data?.data || []);
       }
     } catch (err) {
-      setError("Failed to fetch data.");
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -275,14 +278,116 @@ const CitizenApplication = () => {
 
       if (response?.data?.data?.status == 'y') {
         setDagData(response?.data?.data?.data || []);
+        getEkhajanaReceiptNumber();
       }
     } catch (err) {
-      setError("Failed to fetch data.");
+      setError(true);
     } finally {
       setLoading(false);
     }
     return () => controller.abort(); // Cleanup on unmount
   }
+
+  const getEkhajanaReceiptNumber = async () => {
+    const controller = new AbortController();
+
+    // const postData = {
+    //   dist_code: districtCode,
+    //   subdiv_code: subDivCode,
+    //   cir_code: circleCode,
+    //   mouza_pargona_code: mouzaCode,
+    //   lot_no: lotNo,
+    //   vill_townprt_code: villTownprtCode,
+    //   patta_type_code: pattaType,
+    //   patta_no: pattaNo,
+    // };
+    const postData = {
+      dist_code: "25",
+      subdiv_code: "01",
+      cir_code: "03",
+      mouza_pargona_code: "02",
+      lot_no: "13",
+      vill_townprt_code: "10001",
+      patta_type_code: "0216",
+      patta_no: "1",
+    };
+
+    try {
+      const response = await api.post("/get-ekhajana-receipt-number", postData, {
+        signal: controller.signal
+      }, // Attach the signal to the request
+      );
+
+      if (response?.data?.data?.status == 'y') {
+        setEkhajanaReceiptNumber(true);
+      }
+    } catch (err) {
+      console.log('Pattadar Response:', err.response.data.data.msg);
+      setEkhajanaReceiptNumber(false);
+      await getEkhajanaAmount();
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+
+    // api.post(
+    //   'http://127.0.0.1:8000/api/get-ekhajana-receipt-number',
+    //   postData,                         // ✅ data
+    //   { signal: controller.signal }     // ✅ config
+    // )
+    //   .then(res => {
+    //     console.log('Pattadar Response:', res.data.data.responseType);
+    //   })
+    //   .catch(err => {
+    //     console.log('Pattadar Response:', err.response.data.data);
+    //   });
+
+    return () => controller.abort(); // cleanup
+  };
+
+  const getEkhajanaAmount = async () => {
+    const controller = new AbortController();
+
+    // const postData = {
+    //   dist_code: districtCode,
+    //   subdiv_code: subDivCode,
+    //   cir_code: circleCode,
+    //   mouza_pargona_code: mouzaCode,
+    //   lot_no: lotNo,
+    //   vill_townprt_code: villTownprtCode,
+    //   patta_type_code: pattaType,
+    //   patta_no: pattaNo,
+    // };
+    const postData = {
+      dist_code: "08",
+      subdiv_code: "01",
+      cir_code: "05",
+      mouza_pargona_code: "01",
+      lot_no: "02",
+      vill_townprt_code: "10007",
+      patta_type_code: "0230",
+      patta_no: "15",
+    };
+
+    try {
+      const response = await api.post("/get-ekhajana", postData, {
+        signal: controller.signal
+      }, // Attach the signal to the request
+      );
+      console.log('Ekhajana Response Success:', response.data.data.data[0]);
+      if (response?.data?.data?.status == 'y') {
+        const ekhajanaData = response?.data?.data?.data[0];
+        const totalEkhajanaPrice = parseFloat(ekhajanaData.dag_revenue) + parseFloat(ekhajanaData.dag_local_tax);
+        setEkhajanaPrice(totalEkhajanaPrice || 0);
+      }
+    } catch (err) {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+
+    return () => controller.abort(); // cleanup
+  };
 
   const { control, watch, formState: { errors } } = useForm<FormData>({
     defaultValues: {
@@ -336,7 +441,7 @@ const CitizenApplication = () => {
         setPattaTypeData(response?.data?.data?.data || []);
       }
     } catch (err) {
-      setError("Failed to fetch data.");
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -367,23 +472,45 @@ const CitizenApplication = () => {
       dag_area_b: areaTableData[0].bigha,
       dag_area_k: areaTableData[0].katha,
       dag_area_lc: areaTableData[0].lessa,
-      land_class_code: '1',
-      land_photo: null
+      land_class_code: '1'
     };
 
     const finalData = { ...data, ...extraData };
 
+    const formData = new FormData();
+
+    // append all normal fields
+    Object.entries(finalData).forEach(([key, value]) => {
+      if (key !== 'landPhoto') {
+        formData.append(key, value as any);
+      }
+    });
+
+    // IMPORTANT: map landPhoto → land_photo
+    if (finalData.landPhoto) {
+      formData.append('land_photo', finalData.landPhoto);
+    }
+
     console.log('Final submission data:', finalData);
+    console.log('FILE →', formData.get('land_photo'));
     
     try {
       const response = await api.post("/store-application",
-         finalData, 
-         { signal: controller.signal},
+         formData, 
+         { 
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },          
+          signal: controller.signal
+         },
       );
+
+      return false;
       console.log("err?.response?: ", response?.data?.data?.message);
       setApplicationResponse(response?.data?.data?.message);
       
     } catch (err) {
+      setError(true);
       console.log("err?.response?: ", err?.response);
       setApplicationResponse(err?.response?.data?.data?.message || "Failed to submit application.");
     } finally {
@@ -394,8 +521,7 @@ const CitizenApplication = () => {
     return () => controller.abort(); // Cleanup on unmount
   };
 
-  // console.log("dagData: ", dagData);
-
+  console.log("ekhajanaPrice: ", ekhajanaPrice);
   return (
     <div className="form-container">
       <div className="form-title">Fill All The Details</div>
@@ -645,7 +771,7 @@ const CitizenApplication = () => {
             rules={{ required: 'Patta Number is required' }}
             render={({ field }) => (
               <FormControl className="modal-form-field" error={!!modalErrors.pattaNumber} fullWidth>
-                <InputLabel>Patta Number</InputLabel>
+                <InputLabel>Patta No.</InputLabel>
                 <Select
                   {...field}
                   label="Patta Number"
@@ -675,7 +801,7 @@ const CitizenApplication = () => {
             rules={{ required: 'Dag Number is required' }}
             render={({ field }) => (
               <FormControl className="modal-form-field" error={!!modalErrors.dagNumber} fullWidth>
-                <InputLabel>Dag Number</InputLabel>
+                <InputLabel>Dag No.</InputLabel>
                 <Select
                   {...field}
                   label="Dag Number"
@@ -709,6 +835,12 @@ const CitizenApplication = () => {
                 <Select
                   {...field}
                   label="Pattadar"
+                  onChange={
+                    (e) => {
+                      field.onChange(e);
+                      handlePattaDarChange(e.target.value)
+                    }
+                  }
                 >
                   {
                     pattadarData?.map((item, key) => {
@@ -722,8 +854,44 @@ const CitizenApplication = () => {
               </FormControl>
             )}
           />
+
+          <Controller
+            name="landPhoto"
+            control={modalControl}
+            rules={{ required: 'Land photo is required' }}
+            render={({ field }) => (
+              <FormControl className="modal-form-field" error={!!modalErrors.landPhoto} fullWidth>
+                <Button variant="outlined" component="label">
+                  Upload Land Photo
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      field.onChange(file);
+                    }}
+                  />
+                </Button>
+                {field.value && (
+                  <FormHelperText>{field.value.name}</FormHelperText>
+                )}
+              </FormControl>
+            )}
+          />
         </div>
         }
+
+        {
+          ekhajanaPrice > 0 && (
+            <div className="ekhajana-info">
+              <div className="ekhajana-text">
+                Ekhajana Amount to be paid: ₹ {ekhajanaPrice.toFixed(2)}
+              </div>
+            </div>
+          )
+        }
+
  
         {!allModalFieldsSelected || areaTableData.length ==0 && <div className="modal-separator"></div>}
 
@@ -813,7 +981,7 @@ const CitizenApplication = () => {
             ))
             
             : (
-            <div className='success-container'>
+            <div className={error ? 'success-container' : 'success-container'}>
                 <img src='../../../public/images/success.png' alt='success' />
                 <div className="text">{ applicationResponse }</div>
                 </div>
