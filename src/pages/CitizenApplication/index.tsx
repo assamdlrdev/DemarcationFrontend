@@ -559,16 +559,16 @@ const CitizenApplication = () => {
          },
       );
 
-      console.log("Success response: ", response?.data?.data?.message);
-      setApplicationResponse(response?.data?.data?.message || "Application submitted successfully!");
-      setError(false); // Ensure error is false on success
+      console.log("err?.response?: ", response?.data?.data?.message);
+      setApplicationResponse(response?.data?.data?.message);
       
     } catch (err: any) {
       setError(true);
       console.log("Error response: ", err?.response);
       setApplicationResponse(err?.response?.data?.data?.message || "Failed to submit application. Please try again.");
     } finally {
-      setSubmitLoading(false);
+      setEkhajanaPrice(0);
+      setLoading(false);
       setIsModalProceedClicked(true);
     }
 
