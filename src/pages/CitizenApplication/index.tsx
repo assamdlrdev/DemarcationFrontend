@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Select, MenuItem, FormControl, InputLabel, Button, FormHelperText, TextField } from '@mui/material';
+import { Select, MenuItem, FormControl, InputLabel, Button, FormHelperText, TextField, Box } from '@mui/material';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import ImageIcon from '@mui/icons-material/Image';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import Modal from '../../components/Modal';
 import Table from '../../components/Table';
 import './style.scss';
@@ -24,9 +28,11 @@ interface ModalFormData {
   pattaType: string
   pattaNumber: number | null
   dagNumber: number | null
-  bigha: number | null
-  lessa: number | null
-  katha: number | null
+  bigha: number
+  lessa: number
+  katha: number
+  landPhoto?: File | null
+  pattadarId?: string
 }
 
 const CitizenApplication = () => {
@@ -35,6 +41,9 @@ const CitizenApplication = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [buttonLoading, setButtonLoading] = useState<string | null>(null);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [fieldLoading, setFieldLoading] = useState<string | null>(null);
   const [ekhajanaReceiptNumber, setEkhajanaReceiptNumber] = useState("");
   const [ekhajanaPrice, setEkhajanaPrice] = useState(0);
   const [subDivCode, setSubDivCode] = useState("");
@@ -66,6 +75,7 @@ const CitizenApplication = () => {
 
   const getDistricts = async () => {
     const controller = new AbortController();
+    setLoading(true);
 
     try {
       const response = await api.post("/get-districts", {
@@ -79,7 +89,7 @@ const CitizenApplication = () => {
     } catch (err) {
       setError(true);
     } finally {
-      // setLoading(false);
+      setLoading(false);
     }
     return () => controller.abort(); // Cleanup on unmount
   };
@@ -110,6 +120,7 @@ const CitizenApplication = () => {
     } catch (err) {
       setError(true);
     } finally {
+      setFieldLoading(null);
       setLoading(false);
       // console.log('Pattadar Data', pattadarData);
     }
@@ -119,6 +130,7 @@ const CitizenApplication = () => {
   const handleDistrictChange = async (value: string) => {
     const controller = new AbortController();
     setDistrictCode(value);
+    setFieldLoading('subDiv');
     const postData = { dist_code: value };
 
     try {
@@ -133,6 +145,7 @@ const CitizenApplication = () => {
     } catch (err) {
       setError(true);
     } finally {
+      setFieldLoading(null);
       setLoading(false);
     }
 
@@ -142,6 +155,7 @@ const CitizenApplication = () => {
   const handleSubDivChange = async (value: string) => {
     const controller = new AbortController();
     setSubDivCode(value);
+    setFieldLoading('circle');
     const postData = { dist_code: districtCode, subdiv_code: value };
 
     try {
@@ -156,6 +170,7 @@ const CitizenApplication = () => {
     } catch (err) {
       setError(true);
     } finally {
+      setFieldLoading(null);
       setLoading(false);
     }
 
@@ -165,6 +180,7 @@ const CitizenApplication = () => {
   const handleCircleChange = async (value: string) => {
     const controller = new AbortController();
     setCircleCode(value);
+    setFieldLoading('mouza');
     const postData = { dist_code: districtCode, subdiv_code: subDivCode, cir_code: value };
 
     try {
@@ -179,6 +195,7 @@ const CitizenApplication = () => {
     } catch (err) {
       setError(true);
     } finally {
+      setFieldLoading(null);
       setLoading(false);
     }
 
@@ -188,6 +205,7 @@ const CitizenApplication = () => {
   const handleMouzaChange = async (value: string) => {
     const controller = new AbortController();
     setMouzaCode(value);
+    setFieldLoading('lot');
     const postData = { dist_code: districtCode, subdiv_code: subDivCode, cir_code: circleCode, mouza_pargona_code: value };
 
     try {
@@ -202,6 +220,7 @@ const CitizenApplication = () => {
     } catch (err) {
       setError(true);
     } finally {
+      setFieldLoading(null);
       setLoading(false);
     }
 
@@ -211,6 +230,7 @@ const CitizenApplication = () => {
   const handleLotChange = async (value: string) => {
     const controller = new AbortController();
     setLotNo(value);
+    setFieldLoading('village');
     const postData = { dist_code: districtCode, subdiv_code: subDivCode, cir_code: circleCode, mouza_pargona_code: mouzaCode, lot_no: value };
 
     try {
@@ -225,6 +245,7 @@ const CitizenApplication = () => {
     } catch (err) {
       setError(true);
     } finally {
+      setFieldLoading(null);
       setLoading(false);
     }
     return () => controller.abort(); // Cleanup on unmount
@@ -233,6 +254,16 @@ const CitizenApplication = () => {
   const handlePattaTypeChange = async (value: string) => {
     const controller = new AbortController();
     setPattaType(value);
+    setFieldLoading('pattaNumber');
+    
+    // Clear dependent fields when patta type changes
+    setModalValue('pattaNumber', "");
+    setModalValue('dagNumber', "");
+    setModalValue('pattadarId', "");
+    setPattaNoData([]);
+    setDagData([]);
+    setPattadarData([]);
+    
     const postData = { dist_code: districtCode, subdiv_code: subDivCode, cir_code: circleCode, mouza_pargona_code: mouzaCode, lot_no: lotNo, vill_townprt_code: villTownprtCode, patta_type_code: value };
 
     try {
@@ -247,6 +278,7 @@ const CitizenApplication = () => {
     } catch (err) {
       setError(true);
     } finally {
+      setFieldLoading(null);
       setLoading(false);
     }
     return () => controller.abort(); // Cleanup on unmount
@@ -261,13 +293,27 @@ const CitizenApplication = () => {
         katha: selectedDag.dag_area_k || 0,
       }]);
 
+      setFieldLoading('pattadar');
       getPattadarList();
     }
+  };
+
+  const handlePattaDarChange = (value: string) => {
+    // Handle pattadar change if needed
+    // This function is called when pattadar is selected
   };
 
   const handlePattaNoChange = async (value: string) => {
     const controller = new AbortController();
     setPattaNo(value);
+    setFieldLoading('dagNumber');
+    
+    // Clear dependent fields when patta number changes
+    setModalValue('dagNumber', "");
+    setModalValue('pattadarId', "");
+    setDagData([]);
+    setPattadarData([]);
+    
     const postData = { dist_code: districtCode, subdiv_code: subDivCode, cir_code: circleCode, mouza_pargona_code: mouzaCode, lot_no: lotNo, vill_townprt_code: villTownprtCode };
 
     try {
@@ -283,6 +329,7 @@ const CitizenApplication = () => {
     } catch (err) {
       setError(true);
     } finally {
+      setFieldLoading(null);
       setLoading(false);
     }
     return () => controller.abort(); // Cleanup on unmount
@@ -401,7 +448,7 @@ const CitizenApplication = () => {
     mode: 'onChange',
   });
 
-  const { control: modalControl, handleSubmit: handleModalSubmit, watch: watchModal, formState: { errors: modalErrors }, reset: resetModal } = useForm<ModalFormData>({
+  const { control: modalControl, handleSubmit: handleModalSubmit, watch: watchModal, formState: { errors: modalErrors }, reset: resetModal, setValue: setModalValue } = useForm<ModalFormData>({
     defaultValues: {
       pattadarId: "",
       pattaType: "",
@@ -416,6 +463,11 @@ const CitizenApplication = () => {
 
   const watchModalValues = watchModal();
   const allModalFieldsSelected = watchModalValues.pattaType && watchModalValues.pattaNumber && watchModalValues.dagNumber;
+  
+  // Cascading enable/disable logic
+  const isPattaNumberDisabled = !watchModalValues.pattaType;
+  const isDagNumberDisabled = !watchModalValues.pattaNumber;
+  const isPattadarDisabled = !watchModalValues.dagNumber;
 
   const watchedValues = watch();
   const allFieldsSelected =
@@ -431,6 +483,7 @@ const CitizenApplication = () => {
     const controller = new AbortController();
     const postData = { dist_code: districtCode };
     setVillTownprtCode(value);
+    setButtonLoading(value);
 
     try {
       const response = await api.post("/get-pattatypes-landclasses", postData, {
@@ -444,10 +497,10 @@ const CitizenApplication = () => {
     } catch (err) {
       setError(true);
     } finally {
-      setLoading(false);
+      setButtonLoading(null);
+      setModalOpen(true);
     }
 
-    setModalOpen(true);
     return () => controller.abort(); // Cleanup on unmount
   };
 
@@ -460,7 +513,7 @@ const CitizenApplication = () => {
   // console.log("areaTableData: ", areaTableData);
 
   const onModalSubmit = async (data: ModalFormData) => {
-
+    setSubmitLoading(true);
     const controller = new AbortController();
 
     const extraData = {
@@ -506,16 +559,16 @@ const CitizenApplication = () => {
          },
       );
 
-      return false;
-      console.log("err?.response?: ", response?.data?.data?.message);
-      setApplicationResponse(response?.data?.data?.message);
+      console.log("Success response: ", response?.data?.data?.message);
+      setApplicationResponse(response?.data?.data?.message || "Application submitted successfully!");
+      setError(false); // Ensure error is false on success
       
-    } catch (err) {
+    } catch (err: any) {
       setError(true);
-      console.log("err?.response?: ", err?.response);
-      setApplicationResponse(err?.response?.data?.data?.message || "Failed to submit application.");
+      console.log("Error response: ", err?.response);
+      setApplicationResponse(err?.response?.data?.data?.message || "Failed to submit application. Please try again.");
     } finally {
-      setLoading(false);
+      setSubmitLoading(false);
       setIsModalProceedClicked(true);
     }
 
@@ -523,6 +576,11 @@ const CitizenApplication = () => {
   };
 
   console.log("ekhajanaPrice: ", ekhajanaPrice);
+  
+  if (loading) {
+    return <Loader type="fullPage" />;
+  }
+
   return (
     <div className="form-container">
       <div className="form-title">Fill All The Details</div>
@@ -534,7 +592,7 @@ const CitizenApplication = () => {
             control={control}
             rules={{ required: 'District is required' }}
             render={({ field }) => (
-              <FormControl className="form-field" error={!!errors.district}>
+              <FormControl className="form-field" error={!!errors.district} sx={{ position: 'relative' }}>
                 <InputLabel>Select District</InputLabel>
                 <Select
                   {...field}
@@ -552,6 +610,7 @@ const CitizenApplication = () => {
                     })
                   }
                 </Select>
+                {fieldLoading === 'subDiv' && <Loader type="field" />}
                 {errors.district && (
                   <FormHelperText>{errors.district.message}</FormHelperText>
                 )}
@@ -564,7 +623,7 @@ const CitizenApplication = () => {
             control={control}
             rules={{ required: 'Sub-district is required' }}
             render={({ field }) => (
-              <FormControl className="form-field" error={!!errors.subDivCode}>
+              <FormControl className="form-field" error={!!errors.subDivCode} sx={{ position: 'relative' }}>
                 <InputLabel>Sub-Division</InputLabel>
                 <Select
                   {...field}
@@ -582,6 +641,7 @@ const CitizenApplication = () => {
                     })
                   }
                 </Select>
+                {fieldLoading === 'circle' && <Loader type="field" />}
                 {errors.subDivCode && (
                   <FormHelperText>{errors.subDivCode.message}</FormHelperText>
                 )}
@@ -594,7 +654,7 @@ const CitizenApplication = () => {
             control={control}
             rules={{ required: 'Circle is required' }}
             render={({ field }) => (
-              <FormControl className="form-field" error={!!errors.circle}>
+              <FormControl className="form-field" error={!!errors.circle} sx={{ position: 'relative' }}>
                 <InputLabel>Circle</InputLabel>
                 <Select
                   {...field}
@@ -612,6 +672,7 @@ const CitizenApplication = () => {
                     })
                   }
                 </Select>
+                {fieldLoading === 'mouza' && <Loader type="field" />}
                 {errors.circle && (
                   <FormHelperText>{errors.circle.message}</FormHelperText>
                 )}
@@ -626,7 +687,7 @@ const CitizenApplication = () => {
             control={control}
             rules={{ required: 'Mouza is required' }}
             render={({ field }) => (
-              <FormControl className="form-field" error={!!errors.mouza}>
+              <FormControl className="form-field" error={!!errors.mouza} sx={{ position: 'relative' }}>
                 <InputLabel>Mouza</InputLabel>
                 <Select
                   {...field}
@@ -644,6 +705,7 @@ const CitizenApplication = () => {
                     })
                   }
                 </Select>
+                {fieldLoading === 'lot' && <Loader type="field" />}
                 {errors.mouza && (
                   <FormHelperText>{errors.mouza.message}</FormHelperText>
                 )}
@@ -656,7 +718,7 @@ const CitizenApplication = () => {
             control={control}
             rules={{ required: 'Lot is required' }}
             render={({ field }) => (
-              <FormControl className="form-field" error={!!errors.lot}>
+              <FormControl className="form-field" error={!!errors.lot} sx={{ position: 'relative' }}>
                 <InputLabel>Lot</InputLabel>
                 <Select
                   {...field}
@@ -674,6 +736,7 @@ const CitizenApplication = () => {
                     })
                   }
                 </Select>
+                {fieldLoading === 'village' && <Loader type="field" />}
                 {errors.lot && (
                   <FormHelperText>{errors.lot.message}</FormHelperText>
                 )}
@@ -699,9 +762,15 @@ const CitizenApplication = () => {
                   <Button
                     className="action-button"
                     onClick={() => handleProceedClick(row.village_code)}
+                    disabled={buttonLoading === row.village_code}
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                   >
                     {row.action}
-                    <img src={rightArrowIcon} alt="right arrow" className="action-icon" />
+                    {buttonLoading === row.village_code ? (
+                      <Loader type="button" size={16} />
+                    ) : (
+                      <img src={rightArrowIcon} alt="right arrow" className="action-icon" />
+                    )}
                   </Button>
                 )
               }
@@ -730,8 +799,17 @@ const CitizenApplication = () => {
             type="submit"
             className= {isModalProceedClicked ? "modal-close-button" : "modal-proceed-button"}
             fullWidth
+            disabled={submitLoading}
+            sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}
           >
-            {!isModalProceedClicked ? 'Proceed' : 'CLOSE'}
+            {submitLoading ? (
+              <>
+                <Loader type="button" size={20} />
+                <span>Submitting...</span>
+              </>
+            ) : (
+              !isModalProceedClicked ? 'Proceed' : 'CLOSE'
+            )}
           </Button>
         }
       >
@@ -741,7 +819,7 @@ const CitizenApplication = () => {
             control={modalControl}
             rules={{ required: 'Patta Type is required' }}
             render={({ field }) => (
-              <FormControl className="modal-form-field" error={!!modalErrors.pattaType} fullWidth>
+              <FormControl className="modal-form-field" error={!!modalErrors.pattaType} fullWidth sx={{ position: 'relative' }}>
                 <InputLabel>Patta Type</InputLabel>
                 <Select
                   {...field}
@@ -759,6 +837,7 @@ const CitizenApplication = () => {
                     })
                   }
                 </Select>
+                {fieldLoading === 'pattaNumber' && <Loader type="field" />}
                 {modalErrors.pattaType && (
                   <FormHelperText>{modalErrors.pattaType.message}</FormHelperText>
                 )}
@@ -771,11 +850,12 @@ const CitizenApplication = () => {
             control={modalControl}
             rules={{ required: 'Patta Number is required' }}
             render={({ field }) => (
-              <FormControl className="modal-form-field" error={!!modalErrors.pattaNumber} fullWidth>
+              <FormControl className="modal-form-field" error={!!modalErrors.pattaNumber} fullWidth sx={{ position: 'relative' }}>
                 <InputLabel>Patta No.</InputLabel>
                 <Select
                   {...field}
                   label="Patta Number"
+                  disabled={isPattaNumberDisabled}
                   onChange={
                     (e) => {
                       field.onChange(e);
@@ -789,6 +869,7 @@ const CitizenApplication = () => {
                     })
                   }
                 </Select>
+                {fieldLoading === 'dagNumber' && <Loader type="field" />}
                 {modalErrors.pattaNumber && (
                   <FormHelperText>{modalErrors.pattaNumber.message}</FormHelperText>
                 )}
@@ -801,11 +882,12 @@ const CitizenApplication = () => {
             control={modalControl}
             rules={{ required: 'Dag Number is required' }}
             render={({ field }) => (
-              <FormControl className="modal-form-field" error={!!modalErrors.dagNumber} fullWidth>
+              <FormControl className="modal-form-field" error={!!modalErrors.dagNumber} fullWidth sx={{ position: 'relative' }}>
                 <InputLabel>Dag No.</InputLabel>
                 <Select
                   {...field}
                   label="Dag Number"
+                  disabled={isDagNumberDisabled}
                   onChange={
                     (e) => {
                       field.onChange(e);
@@ -819,6 +901,7 @@ const CitizenApplication = () => {
                     })
                   }
                 </Select>
+                {fieldLoading === 'pattadar' && <Loader type="field" />}
                 {modalErrors.dagNumber && (
                   <FormHelperText>{modalErrors.dagNumber.message}</FormHelperText>
                 )}
@@ -836,6 +919,7 @@ const CitizenApplication = () => {
                 <Select
                   {...field}
                   label="Pattadar"
+                  disabled={isPattadarDisabled}
                   onChange={
                     (e) => {
                       field.onChange(e);
@@ -856,15 +940,20 @@ const CitizenApplication = () => {
             )}
           />
 
+        </div>
+        }
+
+        {/* Upload Land Photo Section */}
+        <div className="upload-photo-section">
           <Controller
             name="landPhoto"
             control={modalControl}
             rules={{ required: 'Land photo is required' }}
             render={({ field }) => (
-              <FormControl className="modal-form-field" error={!!modalErrors.landPhoto} fullWidth>
-                <Button variant="outlined" component="label">
-                  Upload Land Photo
+              <Box className="upload-photo-container">
+                <label htmlFor="land-photo-upload" className="upload-photo-label">
                   <input
+                    id="land-photo-upload"
                     type="file"
                     hidden
                     accept="image/*"
@@ -873,15 +962,61 @@ const CitizenApplication = () => {
                       field.onChange(file);
                     }}
                   />
-                </Button>
-                {field.value && (
-                  <FormHelperText>{field.value.name}</FormHelperText>
+                  <Box className="upload-photo-button" component="div">
+                    {field.value && field.value instanceof File ? (
+                      <Box className="upload-photo-preview">
+                        <ImageIcon sx={{ fontSize: 36, color: '#728fd9' }} />
+                        <Box className="upload-photo-info">
+                          <Box className="upload-photo-name">{field.value.name}</Box>
+                          <Box className="upload-photo-size">
+                            {(field.value.size / 1024 / 1024).toFixed(2)} MB
+                          </Box>
+                        </Box>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            field.onChange(null);
+                            const input = document.getElementById('land-photo-upload') as HTMLInputElement;
+                            if (input) input.value = '';
+                          }}
+                          sx={{ 
+                            mt: 0.5,
+                            textTransform: 'none',
+                            borderColor: '#d32f2f',
+                            color: '#d32f2f',
+                            '&:hover': {
+                              borderColor: '#d32f2f',
+                              backgroundColor: 'rgba(211, 47, 47, 0.04)'
+                            }
+                          }}
+                        >
+                          Remove
+                        </Button>
+                      </Box>
+                    ) : (
+                      <Box className="upload-photo-placeholder">
+                        <CloudUploadIcon sx={{ fontSize: 36, color: '#728fd9', mb: 0.5 }} />
+                        <Box className="upload-photo-text">
+                          <Box className="upload-photo-title">Upload Land Photo</Box>
+                          <Box className="upload-photo-subtitle">Click to browse or drag and drop</Box>
+                          <Box className="upload-photo-hint">Supports: JPG, PNG, GIF (Max 10MB)</Box>
+                        </Box>
+                      </Box>
+                    )}
+                  </Box>
+                </label>
+                {modalErrors.landPhoto && (
+                  <FormHelperText error sx={{ mt: 1, ml: 1 }}>
+                    {modalErrors.landPhoto.message}
+                  </FormHelperText>
                 )}
-              </FormControl>
+              </Box>
             )}
           />
         </div>
-        }
 
         {
           ekhajanaPrice > 0 && (
@@ -928,8 +1063,8 @@ const CitizenApplication = () => {
                                     error={!!modalErrors.bigha}
                                     helperText={modalErrors.bigha?.message}
                                     fullWidth
-                                    value={field.value || ''}
-                                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                                    value={field.value ?? 0}
+                                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 0)}
                                 />
                             )}
                         />
@@ -946,8 +1081,8 @@ const CitizenApplication = () => {
                                     error={!!modalErrors.lessa}
                                     helperText={modalErrors.lessa?.message}
                                     fullWidth
-                                    value={field.value || ''}
-                                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                                    value={field.value ?? 0}
+                                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 0)}
                                 />
                             )}
                         />
@@ -964,8 +1099,8 @@ const CitizenApplication = () => {
                                     error={!!modalErrors.katha}
                                     helperText={modalErrors.katha?.message}
                                     fullWidth
-                                    value={field.value || ''}
-                                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                                    value={field.value ?? 0}
+                                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 0)}
                                 />
                             )}
                         />
@@ -982,9 +1117,18 @@ const CitizenApplication = () => {
             ))
             
             : (
-            <div className={error ? 'success-container' : 'success-container'}>
-                <img src='../../../public/images/success.png' alt='success' />
-                <div className="text">{ applicationResponse }</div>
+            <div className={error ? 'error-container' : 'success-container'}>
+                {error ? (
+                  <>
+                    <ErrorOutlineIcon sx={{ fontSize: 80, color: '#d32f2f' }} />
+                    <div className="text error-text">{ applicationResponse }</div>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircleOutlineIcon sx={{ fontSize: 80, color: '#4caf50' }} />
+                    <div className="text success-text">{ applicationResponse }</div>
+                  </>
+                )}
                 </div>
         )
         }

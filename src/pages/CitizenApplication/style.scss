@@ -5,6 +5,12 @@
   margin-top: 24px;
   border-radius: 14px;
 
+
+.ekhajana-info{
+  margin-top:20px;
+}
+
+
   .form-title {
     margin-bottom: 24px;
     background: #728fd9;
@@ -51,6 +57,10 @@
         }
       }
     }
+  }
+
+  .khajana-info{
+    margin-top: 20px;
   }
 
   .table-section {
@@ -140,6 +150,109 @@
   }
 }
 
+// Upload Photo Section
+.upload-photo-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+
+  .upload-photo-container {
+    width: 100%;
+  }
+
+  .upload-photo-label {
+    display: block;
+    cursor: pointer;
+    width: 100%;
+  }
+
+  .upload-photo-button {
+    width: 100%;
+    min-height: 120px;
+    border: 2px dashed #c4c4c4;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fafafa;
+    transition: all 0.3s ease;
+    padding: 16px;
+
+    &:hover {
+      border-color: #728fd9;
+      background-color: #f5f7ff;
+    }
+  }
+
+  .upload-photo-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+  }
+
+  .upload-photo-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  .upload-photo-title {
+    font-family: "Playfair Display";
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .upload-photo-subtitle {
+    font-family: "Roboto";
+    font-size: 13px;
+    color: #666;
+  }
+
+  .upload-photo-hint {
+    font-family: "Roboto";
+    font-size: 11px;
+    color: #999;
+    margin-top: 2px;
+  }
+
+  .upload-photo-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .upload-photo-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .upload-photo-name {
+    font-family: "Roboto";
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+    text-align: center;
+    word-break: break-all;
+    max-width: 300px;
+  }
+
+  .upload-photo-size {
+    font-family: "Roboto";
+    font-size: 11px;
+    color: #666;
+  }
+}
+
 // New land area container styles
 .new-land-area-container {
   margin-top: 24px;
@@ -187,10 +300,36 @@
     font-size: 24px;
     font-style: normal;
     font-weight: 500;
+    
+    &.success-text {
+      color: #4caf50;
+    }
   }
   
   img {
     width: 173px;
     height: 173px;
+  }
+}
+
+.error-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  flex-direction: column;
+  gap: 20px;
+  
+  .text {
+    color: #d32f2f;
+    font-family: "Playfair Display";
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 500;
+    text-align: center;
+    
+    &.error-text {
+      color: #d32f2f;
+    }
   }
 }

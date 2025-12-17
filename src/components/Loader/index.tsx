@@ -2,7 +2,7 @@ import { CircularProgress, Box } from '@mui/material';
 import './style.scss';
 
 interface LoaderProps {
-  type?: 'fullPage' | 'field';
+  type?: 'fullPage' | 'field' | 'button';
   size?: number;
 }
 
@@ -25,6 +25,14 @@ const Loader = ({ type = 'field', size }: LoaderProps) => {
           <CircularProgress size={size || defaultSize} />
           <div className="loader-text">Loading...</div>
         </Box>
+      </div>
+    );
+  }
+
+  if (type === 'button') {
+    return (
+      <div className="loader-button">
+        <CircularProgress size={size || 20} sx={{ color: 'inherit' }} />
       </div>
     );
   }
