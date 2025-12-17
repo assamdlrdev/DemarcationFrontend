@@ -514,6 +514,7 @@ const CitizenApplication = () => {
 
   const onModalSubmit = async (data: ModalFormData) => {
     setSubmitLoading(true);
+     setError(false);
     const controller = new AbortController();
 
     const extraData = {
@@ -944,7 +945,7 @@ const CitizenApplication = () => {
         }
 
         {/* Upload Land Photo Section */}
-        <div className="upload-photo-section">
+        {!isModalProceedClicked && <div className="upload-photo-section">
           <Controller
             name="landPhoto"
             control={modalControl}
@@ -1017,7 +1018,7 @@ const CitizenApplication = () => {
             )}
           />
         </div>
-
+        }
         {
           ekhajanaPrice > 0 && (
             <div className="ekhajana-info">
