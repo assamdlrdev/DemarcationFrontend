@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Select, MenuItem, FormControl, InputLabel, Button, FormHelperText, TextField, Box } from '@mui/material';
+import { Select, MenuItem, FormControl, InputLabel, Button, FormHelperText, TextField, Box, Backdrop, CircularProgress } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import ImageIcon from '@mui/icons-material/Image';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
@@ -610,7 +610,6 @@ const CitizenApplication = () => {
                     })
                   }
                 </Select>
-                {fieldLoading === 'subDiv' && <Loader type="field" />}
                 {errors.district && (
                   <FormHelperText>{errors.district.message}</FormHelperText>
                 )}
@@ -641,7 +640,6 @@ const CitizenApplication = () => {
                     })
                   }
                 </Select>
-                {fieldLoading === 'circle' && <Loader type="field" />}
                 {errors.subDivCode && (
                   <FormHelperText>{errors.subDivCode.message}</FormHelperText>
                 )}
@@ -672,7 +670,6 @@ const CitizenApplication = () => {
                     })
                   }
                 </Select>
-                {fieldLoading === 'mouza' && <Loader type="field" />}
                 {errors.circle && (
                   <FormHelperText>{errors.circle.message}</FormHelperText>
                 )}
@@ -705,7 +702,6 @@ const CitizenApplication = () => {
                     })
                   }
                 </Select>
-                {fieldLoading === 'lot' && <Loader type="field" />}
                 {errors.mouza && (
                   <FormHelperText>{errors.mouza.message}</FormHelperText>
                 )}
@@ -736,7 +732,6 @@ const CitizenApplication = () => {
                     })
                   }
                 </Select>
-                {fieldLoading === 'village' && <Loader type="field" />}
                 {errors.lot && (
                   <FormHelperText>{errors.lot.message}</FormHelperText>
                 )}
@@ -837,7 +832,6 @@ const CitizenApplication = () => {
                     })
                   }
                 </Select>
-                {fieldLoading === 'pattaNumber' && <Loader type="field" />}
                 {modalErrors.pattaType && (
                   <FormHelperText>{modalErrors.pattaType.message}</FormHelperText>
                 )}
@@ -869,7 +863,6 @@ const CitizenApplication = () => {
                     })
                   }
                 </Select>
-                {fieldLoading === 'dagNumber' && <Loader type="field" />}
                 {modalErrors.pattaNumber && (
                   <FormHelperText>{modalErrors.pattaNumber.message}</FormHelperText>
                 )}
@@ -901,7 +894,6 @@ const CitizenApplication = () => {
                     })
                   }
                 </Select>
-                {fieldLoading === 'pattadar' && <Loader type="field" />}
                 {modalErrors.dagNumber && (
                   <FormHelperText>{modalErrors.dagNumber.message}</FormHelperText>
                 )}
@@ -943,90 +935,103 @@ const CitizenApplication = () => {
         </div>
         }
 
-        {/* Upload Land Photo Section */}
-        <div className="upload-photo-section">
-          <Controller
-            name="landPhoto"
-            control={modalControl}
-            rules={{ required: 'Land photo is required' }}
-            render={({ field }) => (
-              <Box className="upload-photo-container">
-                <label htmlFor="land-photo-upload" className="upload-photo-label">
-                  <input
-                    id="land-photo-upload"
-                    type="file"
-                    hidden
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      field.onChange(file);
-                    }}
-                  />
-                  <Box className="upload-photo-button" component="div">
-                    {field.value && field.value instanceof File ? (
-                      <Box className="upload-photo-preview">
-                        <ImageIcon sx={{ fontSize: 36, color: '#728fd9' }} />
-                        <Box className="upload-photo-info">
-                          <Box className="upload-photo-name">{field.value.name}</Box>
-                          <Box className="upload-photo-size">
-                            {(field.value.size / 1024 / 1024).toFixed(2)} MB
-                          </Box>
-                        </Box>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            field.onChange(null);
-                            const input = document.getElementById('land-photo-upload') as HTMLInputElement;
-                            if (input) input.value = '';
-                          }}
-                          sx={{ 
-                            mt: 0.5,
-                            textTransform: 'none',
+        {!isModalProceedClicked && (
+          <>
+            {/* Upload Land Photo Section */}
+            <div className="upload-photo-section">
+              <Controller
+                name="landPhoto"
+                control={modalControl}
+                rules={{ required: 'Land photo is required' }}
+                render={({ field }) => (
+                  <Box className="upload-photo-container">
+                    <label htmlFor="land-photo-upload" className="upload-photo-label">
+                      <input
+                        id="land-photo-upload"
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          field.onChange(file);
+                        }}
+                      />
+                      <Box 
+                        className={`upload-photo-button ${modalErrors.landPhoto ? 'upload-photo-button-error' : ''}`}
+                        component="div"
+                        sx={{
+                          ...(modalErrors.landPhoto && {
+                            border: '2px dashed #d32f2f',
                             borderColor: '#d32f2f',
-                            color: '#d32f2f',
-                            '&:hover': {
-                              borderColor: '#d32f2f',
-                              backgroundColor: 'rgba(211, 47, 47, 0.04)'
-                            }
-                          }}
-                        >
-                          Remove
-                        </Button>
+                          }),
+                        }}
+                      >
+                        {field.value && field.value instanceof File ? (
+                          <Box className="upload-photo-preview">
+                            <ImageIcon sx={{ fontSize: 36, color: '#728fd9' }} />
+                            <Box className="upload-photo-info">
+                              <Box className="upload-photo-name">{field.value.name}</Box>
+                              <Box className="upload-photo-size">
+                                {(field.value.size / 1024 / 1024).toFixed(2)} MB
+                              </Box>
+                            </Box>
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                field.onChange(null);
+                                const input = document.getElementById('land-photo-upload') as HTMLInputElement;
+                                if (input) input.value = '';
+                              }}
+                              sx={{ 
+                                mt: 0.5,
+                                textTransform: 'none',
+                                borderColor: '#d32f2f',
+                                color: '#d32f2f',
+                                '&:hover': {
+                                  borderColor: '#d32f2f',
+                                  backgroundColor: 'rgba(211, 47, 47, 0.04)'
+                                }
+                              }}
+                            >
+                              Remove
+                            </Button>
+                          </Box>
+                        ) : (
+                          <Box className="upload-photo-placeholder">
+                            <CloudUploadIcon sx={{ fontSize: 36, color: '#728fd9', mb: 0.5 }} />
+                            <Box className="upload-photo-text">
+                              <Box className="upload-photo-title">Upload Land Photo</Box>
+                              <Box className="upload-photo-subtitle">Click to browse or drag and drop</Box>
+                              <Box className="upload-photo-hint">Supports: JPG, PNG, GIF (Max 10MB)</Box>
+                            </Box>
+                          </Box>
+                        )}
                       </Box>
-                    ) : (
-                      <Box className="upload-photo-placeholder">
-                        <CloudUploadIcon sx={{ fontSize: 36, color: '#728fd9', mb: 0.5 }} />
-                        <Box className="upload-photo-text">
-                          <Box className="upload-photo-title">Upload Land Photo</Box>
-                          <Box className="upload-photo-subtitle">Click to browse or drag and drop</Box>
-                          <Box className="upload-photo-hint">Supports: JPG, PNG, GIF (Max 10MB)</Box>
-                        </Box>
-                      </Box>
+                    </label>
+                    {modalErrors.landPhoto && (
+                      <FormHelperText error sx={{ mt: 1, ml: 1 }}>
+                        {modalErrors.landPhoto.message}
+                      </FormHelperText>
                     )}
                   </Box>
-                </label>
-                {modalErrors.landPhoto && (
-                  <FormHelperText error sx={{ mt: 1, ml: 1 }}>
-                    {modalErrors.landPhoto.message}
-                  </FormHelperText>
                 )}
-              </Box>
-            )}
-          />
-        </div>
-
-        {
-          ekhajanaPrice > 0 && (
-            <div className="ekhajana-info">
-              <div className="ekhajana-text">
-                Ekhajana Amount to be paid: ₹ {ekhajanaPrice.toFixed(2)}
-              </div>
+              />
             </div>
-          )
-        }
+
+            {
+              ekhajanaPrice > 0 && (
+                <div className="ekhajana-info">
+                  <div className="ekhajana-text">
+                    Ekhajana Amount to be paid: ₹ {ekhajanaPrice.toFixed(2)}
+                  </div>
+                </div>
+              )
+            }
+          </>
+        )}
 
  
         {!allModalFieldsSelected || areaTableData.length ==0 && <div className="modal-separator"></div>}
@@ -1063,26 +1068,11 @@ const CitizenApplication = () => {
                                     error={!!modalErrors.bigha}
                                     helperText={modalErrors.bigha?.message}
                                     fullWidth
-                                    value={field.value ?? 0}
-                                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 0)}
-                                />
-                            )}
-                        />
-                        <Controller
-                            name="lessa"
-                            control={modalControl}
-                            rules={{ required: 'Lessa is required' }}
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    label="Lessa"
-                                    type="number"
-                                    className="land-area-field"
-                                    error={!!modalErrors.lessa}
-                                    helperText={modalErrors.lessa?.message}
-                                    fullWidth
-                                    value={field.value ?? 0}
-                                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 0)}
+                                    value={field.value === 0 ? '' : field.value}
+                                    onChange={(e) => {
+                                        const value = e.target.value === '' ? 0 : Number(e.target.value);
+                                        field.onChange(value);
+                                    }}
                                 />
                             )}
                         />
@@ -1099,8 +1089,32 @@ const CitizenApplication = () => {
                                     error={!!modalErrors.katha}
                                     helperText={modalErrors.katha?.message}
                                     fullWidth
-                                    value={field.value ?? 0}
-                                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 0)}
+                                    value={field.value === 0 ? '' : field.value}
+                                    onChange={(e) => {
+                                        const value = e.target.value === '' ? 0 : Number(e.target.value);
+                                        field.onChange(value);
+                                    }}
+                                />
+                            )}
+                        />
+                        <Controller
+                            name="lessa"
+                            control={modalControl}
+                            rules={{ required: 'Lessa is required' }}
+                            render={({ field }) => (
+                                <TextField
+                                    {...field}
+                                    label="Lessa"
+                                    type="number"
+                                    className="land-area-field"
+                                    error={!!modalErrors.lessa}
+                                    helperText={modalErrors.lessa?.message}
+                                    fullWidth
+                                    value={field.value === 0 ? '' : field.value}
+                                    onChange={(e) => {
+                                        const value = e.target.value === '' ? 0 : Number(e.target.value);
+                                        field.onChange(value);
+                                    }}
                                 />
                             )}
                         />
@@ -1134,6 +1148,13 @@ const CitizenApplication = () => {
         }
 
       </Modal>
+      
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={fieldLoading !== null}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </div>
   );
 };

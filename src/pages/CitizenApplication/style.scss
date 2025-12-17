@@ -182,6 +182,11 @@
       border-color: #728fd9;
       background-color: #f5f7ff;
     }
+
+    &.upload-photo-button-error {
+      border: 2px dashed #d32f2f;
+      border-color: #d32f2f;
+    }
   }
 
   .upload-photo-placeholder {
