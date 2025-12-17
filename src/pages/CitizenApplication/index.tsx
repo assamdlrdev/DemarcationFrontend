@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Select, MenuItem, FormControl, InputLabel, Button, FormHelperText, TextField, Box, Backdrop, CircularProgress } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -66,8 +66,8 @@ const CitizenApplication = () => {
   const [selectedDagDetails, setSelectedDagDetails] = useState({ areaB: '', areaL: '', areaK: '' });
   const [pattadarData, setPattadarData] = useState([]);
   const [applicationResponse, setApplicationResponse] = useState("");
-
-
+  const [submittedFormValues, setSubmittedFormValues] = useState<ModalFormData | null>(null);
+  const formSubmittedRef = useRef(false);
 
   useEffect(() => {
     getDistricts();
@@ -469,6 +469,54 @@ const CitizenApplication = () => {
   const isDagNumberDisabled = !watchModalValues.pattaNumber;
   const isPattadarDisabled = !watchModalValues.dagNumber;
 
+  // Scroll to first error field when validation errors occur after form submission
+  useEffect(() => {
+    if (formSubmittedRef.current && Object.keys(modalErrors).length > 0 && modalOpen) {
+      // Find the first error field
+      const errorFieldNames = Object.keys(modalErrors);
+      const firstErrorFieldName = errorFieldNames[0];
+      
+      // Map field names to their corresponding elements
+      const fieldSelectors: { [key: string]: string } = {
+        pattaType: '[name="pattaType"]',
+        pattaNumber: '[name="pattaNumber"]',
+        dagNumber: '[name="dagNumber"]',
+        pattadarId: '[name="pattadarId"]',
+        landPhoto: '#land-photo-upload',
+        bigha: '[name="bigha"]',
+        lessa: '[name="lessa"]',
+        katha: '[name="katha"]',
+      };
+
+      const selector = fieldSelectors[firstErrorFieldName];
+      if (selector) {
+        // Small delay to ensure DOM is updated
+        setTimeout(() => {
+          const errorElement = document.querySelector(selector);
+          const modalBody = document.querySelector('.modal-body');
+          
+          if (errorElement && modalBody) {
+            // Find the closest FormControl or parent container
+            const formControl = errorElement.closest('.modal-form-field') || 
+                               errorElement.closest('.upload-photo-container') ||
+                               errorElement.closest('.land-area-field')?.parentElement;
+            
+            if (formControl) {
+              // Scroll the modal body to the error field
+              formControl.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+              });
+            }
+          }
+        }, 100);
+      }
+      
+      // Reset the ref after scrolling
+      formSubmittedRef.current = false;
+    }
+  }, [modalErrors, modalOpen]);
+
   const watchedValues = watch();
   const allFieldsSelected =
     watchedValues.district &&
@@ -479,7 +527,24 @@ const CitizenApplication = () => {
     watchedValues.villageType;
 
   const handleProceedClick = async (value) => {
-    resetModal();
+    // If there are preserved form values from a previous error, restore them instead of resetting
+    if (submittedFormValues) {
+      // Restore the form values
+      setModalValue('pattaType', submittedFormValues.pattaType || "");
+      setModalValue('pattaNumber', submittedFormValues.pattaNumber || "");
+      setModalValue('dagNumber', submittedFormValues.dagNumber || "");
+      setModalValue('pattadarId', submittedFormValues.pattadarId || "");
+      setModalValue('bigha', submittedFormValues.bigha || 0);
+      setModalValue('lessa', submittedFormValues.lessa || 0);
+      setModalValue('katha', submittedFormValues.katha || 0);
+      if (submittedFormValues.landPhoto) {
+        setModalValue('landPhoto', submittedFormValues.landPhoto);
+      }
+    } else {
+      // Only reset if there are no preserved values
+      resetModal();
+    }
+    
     const controller = new AbortController();
     const postData = { dist_code: districtCode };
     setVillTownprtCode(value);
@@ -505,15 +570,62 @@ const CitizenApplication = () => {
   };
 
   const handleCloseModal = () => {
+    // If there's an error and the error modal is showing, show the form again instead of closing
+    if (error && isModalProceedClicked) {
+      setIsModalProceedClicked(false);
+      setSubmitLoading(false);
+      // Keep modal open and error state, so user can fix and resubmit
+      return;
+    }
+    
+    // If there was an error and form values haven't changed, preserve them
+    if (error && submittedFormValues) {
+      const currentFormValues = watchModalValues;
+      
+      // Compare file objects by name and size (if both are files)
+      const landPhotoChanged = 
+        (currentFormValues.landPhoto instanceof File && submittedFormValues.landPhoto instanceof File)
+          ? currentFormValues.landPhoto.name !== submittedFormValues.landPhoto.name ||
+            currentFormValues.landPhoto.size !== submittedFormValues.landPhoto.size
+          : currentFormValues.landPhoto !== submittedFormValues.landPhoto;
+      
+      const valuesChanged = 
+        currentFormValues.pattaType !== submittedFormValues.pattaType ||
+        currentFormValues.pattaNumber !== submittedFormValues.pattaNumber ||
+        currentFormValues.dagNumber !== submittedFormValues.dagNumber ||
+        currentFormValues.pattadarId !== submittedFormValues.pattadarId ||
+        currentFormValues.bigha !== submittedFormValues.bigha ||
+        currentFormValues.katha !== submittedFormValues.katha ||
+        currentFormValues.lessa !== submittedFormValues.lessa ||
+        landPhotoChanged;
+      
+      // Only reset if values have changed
+      if (valuesChanged) {
+        resetModal();
+        setSubmittedFormValues(null); // Clear stored values if they changed
+      }
+      // If values haven't changed, keep submittedFormValues so we can restore them later
+    } else {
+      // Reset normally if no error or no submitted values stored
+      resetModal();
+      setSubmittedFormValues(null);
+    }
+    
     setIsModalProceedClicked(false);
     setModalOpen(false);
-    resetModal();
+    setSubmitLoading(false);
+    setError(false); // Reset error state when closing modal
+    formSubmittedRef.current = false; // Reset form submission ref
   };
 
   // console.log("areaTableData: ", areaTableData);
 
   const onModalSubmit = async (data: ModalFormData) => {
     setSubmitLoading(true);
+    setError(false);
+    formSubmittedRef.current = false; // Reset ref on successful validation
+    // Store form values before submission to compare later
+    setSubmittedFormValues({ ...data });
     const controller = new AbortController();
 
     const extraData = {
@@ -559,16 +671,16 @@ const CitizenApplication = () => {
          },
       );
 
-      console.log("Success response: ", response?.data?.data?.message);
-      setApplicationResponse(response?.data?.data?.message || "Application submitted successfully!");
-      setError(false); // Ensure error is false on success
+      console.log("err?.response?: ", response?.data?.data?.message);
+      setApplicationResponse(response?.data?.data?.message);
       
     } catch (err: any) {
       setError(true);
       console.log("Error response: ", err?.response);
       setApplicationResponse(err?.response?.data?.data?.message || "Failed to submit application. Please try again.");
     } finally {
-      setSubmitLoading(false);
+      setEkhajanaPrice(0);
+      setLoading(false);
       setIsModalProceedClicked(true);
     }
 
@@ -788,13 +900,17 @@ const CitizenApplication = () => {
         open={modalOpen}
         onClose={handleCloseModal}
         title="Land Area Information"
-        onSubmit={!isModalProceedClicked ? handleModalSubmit(onModalSubmit) : undefined}
+        onSubmit={!isModalProceedClicked ? (e) => {
+          formSubmittedRef.current = true;
+          handleModalSubmit(onModalSubmit)(e);
+        } : undefined}
         customFooter={
           <Button
-            type="submit"
+            type={isModalProceedClicked ? "button" : "submit"}
             className= {isModalProceedClicked ? "modal-close-button" : "modal-proceed-button"}
             fullWidth
             disabled={submitLoading}
+            onClick={isModalProceedClicked ? handleCloseModal : undefined}
             sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}
           >
             {submitLoading ? (
