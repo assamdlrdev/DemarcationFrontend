@@ -508,6 +508,7 @@ const CitizenApplication = () => {
     setIsModalProceedClicked(false);
     setModalOpen(false);
     resetModal();
+    setSubmitLoading(false);
   };
 
   // console.log("areaTableData: ", areaTableData);
