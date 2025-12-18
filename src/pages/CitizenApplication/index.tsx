@@ -454,9 +454,9 @@ const CitizenApplication = () => {
       pattaType: "",
       pattaNumber: "",
       dagNumber: "",
-      bigha: 0,
-      lessa: 0,
-      katha: 0,
+      bigha: "",
+      lessa: "",
+      katha: "",
     },
     mode: 'onChange',
   });
@@ -549,13 +549,13 @@ const CitizenApplication = () => {
     const postData = { dist_code: districtCode };
     setVillTownprtCode(value);
     setButtonLoading(value);
-
+    console.log("postData: ", postData);
     try {
       const response = await api.post("/get-pattatypes-landclasses", postData, {
         signal: controller.signal
       }, // Attach the signal to the request
       );
-
+      console.log("response: ", response?.data);
       if (response?.data?.data?.status == 'y') {
         setPattaTypeData(response?.data?.data?.data || []);
       }
@@ -1184,9 +1184,8 @@ const CitizenApplication = () => {
                                     error={!!modalErrors.bigha}
                                     helperText={modalErrors.bigha?.message}
                                     fullWidth
-                                    value={field.value === 0 ? '' : field.value}
                                     onChange={(e) => {
-                                        const value = e.target.value === '' ? 0 : Number(e.target.value);
+                                        const value = e.target.value === '' ? '' : Number(e.target.value);
                                         field.onChange(value);
                                     }}
                                 />
@@ -1205,9 +1204,8 @@ const CitizenApplication = () => {
                                     error={!!modalErrors.katha}
                                     helperText={modalErrors.katha?.message}
                                     fullWidth
-                                    value={field.value === 0 ? '' : field.value}
                                     onChange={(e) => {
-                                        const value = e.target.value === '' ? 0 : Number(e.target.value);
+                                        const value = e.target.value === '' ? '' : Number(e.target.value);
                                         field.onChange(value);
                                     }}
                                 />
@@ -1226,9 +1224,8 @@ const CitizenApplication = () => {
                                     error={!!modalErrors.lessa}
                                     helperText={modalErrors.lessa?.message}
                                     fullWidth
-                                    value={field.value === 0 ? '' : field.value}
                                     onChange={(e) => {
-                                        const value = e.target.value === '' ? 0 : Number(e.target.value);
+                                        const value = e.target.value === '' ? '' : Number(e.target.value);
                                         field.onChange(value);
                                     }}
                                 />
