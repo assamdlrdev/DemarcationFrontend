@@ -1,5 +1,6 @@
 import styled from '@emotion/styled';
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Page = styled.div`
   background: #f4f6f8;
@@ -124,6 +125,8 @@ const CloseBtn = styled.button`
 /* ---------- Component ---------- */
 
 const ApplicationDetails = () => {
+  const navigate = useNavigate();
+
   const [openPhoto, setOpenPhoto] = useState(false);
 
   const data = {
@@ -185,7 +188,14 @@ const ApplicationDetails = () => {
         {/* Photo */}
         <Section>
           <SectionTitle>Documents</SectionTitle>
-          <Button onClick={() => setOpenPhoto(true)}>View Photo</Button>
+          <Button onClick={() => setOpenPhoto(true)}>View Photo</Button> &nbsp;
+          <Button
+            style={{ background: 'gray', color: '#fff' }}
+            onClick={() => navigate('/')}
+          >
+            Go Back
+          </Button>
+
         </Section>
       </Card>
 
