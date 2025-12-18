@@ -339,3 +339,34 @@
     }
   }
 }
+
+.application-details {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.details-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-row label {
+  font-size: 13px;
+  margin-bottom: 4px;
+  color: #555;
+}
+
+.form-row input {
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #f9f9f9;
+}

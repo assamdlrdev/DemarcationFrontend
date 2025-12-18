@@ -11,9 +11,39 @@ import './style.scss';
 import mapInfoIcon from '../../../public/svg/info.svg';
 import rightArrowIcon from '../../../public/svg/icon right.svg';
 import axios from 'axios';
-import api from "../../api/axios"; 
+import api from "../../api/axios";
 import errorIcon from '../../../public/svg/empty-img-gray.svg';
 import Loader from '../../components/Loader';
+import { useNavigate } from 'react-router-dom';
+import styled from '@emotion/styled';
+
+const DetailsButton = styled.button`
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+
+  &:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 8px rgba(37, 99, 235, 0.3);
+  }
+`;
+
 
 interface FormData {
   district: string;
@@ -36,7 +66,7 @@ interface ModalFormData {
 }
 
 const CitizenApplication = () => {
-  const [isModalProceedClicked,setIsModalProceedClicked] = useState(false);
+  const [isModalProceedClicked, setIsModalProceedClicked] = useState(false);
   const [areaTableData, setAreaTableData] = useState([{ bigha: 0, lessa: 0, katha: 0 }]);
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -68,6 +98,8 @@ const CitizenApplication = () => {
   const [applicationResponse, setApplicationResponse] = useState("");
   const [submittedFormValues, setSubmittedFormValues] = useState<ModalFormData | null>(null);
   const formSubmittedRef = useRef(false);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     getDistricts();
@@ -255,7 +287,7 @@ const CitizenApplication = () => {
     const controller = new AbortController();
     setPattaType(value);
     setFieldLoading('pattaNumber');
-    
+
     // Clear dependent fields when patta type changes
     setModalValue('pattaNumber', "");
     setModalValue('dagNumber', "");
@@ -263,7 +295,7 @@ const CitizenApplication = () => {
     setPattaNoData([]);
     setDagData([]);
     setPattadarData([]);
-    
+
     const postData = { dist_code: districtCode, subdiv_code: subDivCode, cir_code: circleCode, mouza_pargona_code: mouzaCode, lot_no: lotNo, vill_townprt_code: villTownprtCode, patta_type_code: value };
 
     try {
@@ -307,13 +339,13 @@ const CitizenApplication = () => {
     const controller = new AbortController();
     setPattaNo(value);
     setFieldLoading('dagNumber');
-    
+
     // Clear dependent fields when patta number changes
     setModalValue('dagNumber', "");
     setModalValue('pattadarId', "");
     setDagData([]);
     setPattadarData([]);
-    
+
     const postData = { dist_code: districtCode, subdiv_code: subDivCode, cir_code: circleCode, mouza_pargona_code: mouzaCode, lot_no: lotNo, vill_townprt_code: villTownprtCode };
 
     try {
@@ -463,7 +495,7 @@ const CitizenApplication = () => {
 
   const watchModalValues = watchModal();
   const allModalFieldsSelected = watchModalValues.pattaType && watchModalValues.pattaNumber && watchModalValues.dagNumber;
-  
+
   // Cascading enable/disable logic
   const isPattaNumberDisabled = !watchModalValues.pattaType;
   const isDagNumberDisabled = !watchModalValues.pattaNumber;
@@ -475,7 +507,7 @@ const CitizenApplication = () => {
       // Find the first error field
       const errorFieldNames = Object.keys(modalErrors);
       const firstErrorFieldName = errorFieldNames[0];
-      
+
       // Map field names to their corresponding elements
       const fieldSelectors: { [key: string]: string } = {
         pattaType: '[name="pattaType"]',
@@ -494,13 +526,13 @@ const CitizenApplication = () => {
         setTimeout(() => {
           const errorElement = document.querySelector(selector);
           const modalBody = document.querySelector('.modal-body');
-          
+
           if (errorElement && modalBody) {
             // Find the closest FormControl or parent container
-            const formControl = errorElement.closest('.modal-form-field') || 
-                               errorElement.closest('.upload-photo-container') ||
-                               errorElement.closest('.land-area-field')?.parentElement;
-            
+            const formControl = errorElement.closest('.modal-form-field') ||
+              errorElement.closest('.upload-photo-container') ||
+              errorElement.closest('.land-area-field')?.parentElement;
+
             if (formControl) {
               // Scroll the modal body to the error field
               formControl.scrollIntoView({
@@ -511,7 +543,7 @@ const CitizenApplication = () => {
           }
         }, 100);
       }
-      
+
       // Reset the ref after scrolling
       formSubmittedRef.current = false;
     }
@@ -544,7 +576,7 @@ const CitizenApplication = () => {
       // Only reset if there are no preserved values
       resetModal();
     }
-    
+
     const controller = new AbortController();
     const postData = { dist_code: districtCode };
     setVillTownprtCode(value);
@@ -577,19 +609,19 @@ const CitizenApplication = () => {
       // Keep modal open and error state, so user can fix and resubmit
       return;
     }
-    
+
     // If there was an error and form values haven't changed, preserve them
     if (error && submittedFormValues) {
       const currentFormValues = watchModalValues;
-      
+
       // Compare file objects by name and size (if both are files)
-      const landPhotoChanged = 
+      const landPhotoChanged =
         (currentFormValues.landPhoto instanceof File && submittedFormValues.landPhoto instanceof File)
           ? currentFormValues.landPhoto.name !== submittedFormValues.landPhoto.name ||
-            currentFormValues.landPhoto.size !== submittedFormValues.landPhoto.size
+          currentFormValues.landPhoto.size !== submittedFormValues.landPhoto.size
           : currentFormValues.landPhoto !== submittedFormValues.landPhoto;
-      
-      const valuesChanged = 
+
+      const valuesChanged =
         currentFormValues.pattaType !== submittedFormValues.pattaType ||
         currentFormValues.pattaNumber !== submittedFormValues.pattaNumber ||
         currentFormValues.dagNumber !== submittedFormValues.dagNumber ||
@@ -598,7 +630,7 @@ const CitizenApplication = () => {
         currentFormValues.katha !== submittedFormValues.katha ||
         currentFormValues.lessa !== submittedFormValues.lessa ||
         landPhotoChanged;
-      
+
       // Only reset if values have changed
       if (valuesChanged) {
         resetModal();
@@ -610,7 +642,7 @@ const CitizenApplication = () => {
       resetModal();
       setSubmittedFormValues(null);
     }
-    
+
     setIsModalProceedClicked(false);
     setModalOpen(false);
     setSubmitLoading(false);
@@ -659,21 +691,21 @@ const CitizenApplication = () => {
 
     console.log('Final submission data:', finalData);
     console.log('FILE →', formData.get('land_photo'));
-    
+
     try {
       const response = await api.post("/store-application",
-         formData, 
-         { 
+        formData,
+        {
           headers: {
             'Content-Type': 'multipart/form-data',
-          },          
+          },
           signal: controller.signal
-         },
+        },
       );
 
       console.log("err?.response?: ", response?.data?.data?.message);
       setApplicationResponse(response?.data?.data?.message);
-      
+
     } catch (err: any) {
       setError(true);
       console.log("Error response: ", err?.response);
@@ -688,10 +720,12 @@ const CitizenApplication = () => {
   };
 
   console.log("ekhajanaPrice: ", ekhajanaPrice);
-  
+
   if (loading) {
     return <Loader type="fullPage" />;
   }
+
+  const id = 5;
 
   return (
     <div className="form-container">
@@ -907,7 +941,7 @@ const CitizenApplication = () => {
         customFooter={
           <Button
             type={isModalProceedClicked ? "button" : "submit"}
-            className= {isModalProceedClicked ? "modal-close-button" : "modal-proceed-button"}
+            className={isModalProceedClicked ? "modal-close-button" : "modal-proceed-button"}
             fullWidth
             disabled={submitLoading}
             onClick={isModalProceedClicked ? handleCloseModal : undefined}
@@ -1072,7 +1106,7 @@ const CitizenApplication = () => {
                           field.onChange(file);
                         }}
                       />
-                      <Box 
+                      <Box
                         className={`upload-photo-button ${modalErrors.landPhoto ? 'upload-photo-button-error' : ''}`}
                         component="div"
                         sx={{
@@ -1101,7 +1135,7 @@ const CitizenApplication = () => {
                                 const input = document.getElementById('land-photo-upload') as HTMLInputElement;
                                 if (input) input.value = '';
                               }}
-                              sx={{ 
+                              sx={{
                                 mt: 0.5,
                                 textTransform: 'none',
                                 borderColor: '#d32f2f',
@@ -1149,119 +1183,125 @@ const CitizenApplication = () => {
           </>
         )}
 
- 
-        {!allModalFieldsSelected || areaTableData.length ==0 && <div className="modal-separator"></div>}
+
+        {!allModalFieldsSelected || areaTableData.length == 0 && <div className="modal-separator"></div>}
 
         {
-        !isModalProceedClicked ? (
-             allModalFieldsSelected && areaTableData.length > 0 ? (
-                <>
+          !isModalProceedClicked ? (
+            allModalFieldsSelected && areaTableData.length > 0 ? (
+              <>
                 <div className="area-table">
-                    <Table
-                        title="Area Information"
-                        columns={[
-                            { header: 'Bigha', accessor: 'bigha' },
-                            { header: 'Katha', accessor: 'katha' },
-                            { header: 'Lessa', accessor: 'lessa' }
-                        ]}
-                        data={areaTableData}
-                        className="table-container"
-                    />
+                  <Table
+                    title="Area Information"
+                    columns={[
+                      { header: 'Bigha', accessor: 'bigha' },
+                      { header: 'Katha', accessor: 'katha' },
+                      { header: 'Lessa', accessor: 'lessa' }
+                    ]}
+                    data={areaTableData}
+                    className="table-container"
+                  />
                 </div>
                 <div className="new-land-area-container">
-                    <div className="title">Enter New Land Area</div>
-                    <div className="land-area-fields">
-                        <Controller
-                            name="bigha"
-                            control={modalControl}
-                            rules={{ required: 'Bigha is required' }}
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    label="Bigha"
-                                    type="number"
-                                    className="land-area-field"
-                                    error={!!modalErrors.bigha}
-                                    helperText={modalErrors.bigha?.message}
-                                    fullWidth
-                                    onChange={(e) => {
-                                        const value = e.target.value === '' ? '' : Number(e.target.value);
-                                        field.onChange(value);
-                                    }}
-                                />
-                            )}
+                  <div className="title">Enter New Land Area</div>
+                  <div className="land-area-fields">
+                    <Controller
+                      name="bigha"
+                      control={modalControl}
+                      rules={{ required: 'Bigha is required' }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Bigha"
+                          type="number"
+                          className="land-area-field"
+                          error={!!modalErrors.bigha}
+                          helperText={modalErrors.bigha?.message}
+                          fullWidth
+                          onChange={(e) => {
+                            const value = e.target.value === '' ? '' : Number(e.target.value);
+                            field.onChange(value);
+                          }}
                         />
-                        <Controller
-                            name="katha"
-                            control={modalControl}
-                            rules={{ required: 'Katha is required' }}
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    label="Katha"
-                                    type="number"
-                                    className="land-area-field"
-                                    error={!!modalErrors.katha}
-                                    helperText={modalErrors.katha?.message}
-                                    fullWidth
-                                    onChange={(e) => {
-                                        const value = e.target.value === '' ? '' : Number(e.target.value);
-                                        field.onChange(value);
-                                    }}
-                                />
-                            )}
+                      )}
+                    />
+                    <Controller
+                      name="katha"
+                      control={modalControl}
+                      rules={{ required: 'Katha is required' }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Katha"
+                          type="number"
+                          className="land-area-field"
+                          error={!!modalErrors.katha}
+                          helperText={modalErrors.katha?.message}
+                          fullWidth
+                          onChange={(e) => {
+                            const value = e.target.value === '' ? '' : Number(e.target.value);
+                            field.onChange(value);
+                          }}
                         />
-                        <Controller
-                            name="lessa"
-                            control={modalControl}
-                            rules={{ required: 'Lessa is required' }}
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    label="Lessa"
-                                    type="number"
-                                    className="land-area-field"
-                                    error={!!modalErrors.lessa}
-                                    helperText={modalErrors.lessa?.message}
-                                    fullWidth
-                                    onChange={(e) => {
-                                        const value = e.target.value === '' ? '' : Number(e.target.value);
-                                        field.onChange(value);
-                                    }}
-                                />
-                            )}
+                      )}
+                    />
+                    <Controller
+                      name="lessa"
+                      control={modalControl}
+                      rules={{ required: 'Lessa is required' }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Lessa"
+                          type="number"
+                          className="land-area-field"
+                          error={!!modalErrors.lessa}
+                          helperText={modalErrors.lessa?.message}
+                          fullWidth
+                          onChange={(e) => {
+                            const value = e.target.value === '' ? '' : Number(e.target.value);
+                            field.onChange(value);
+                          }}
                         />
-                    </div>
+                      )}
+                    />
+                  </div>
+
+                  <DetailsButton onClick={() => navigate(`/application-details/${id}`)}>
+                    View Application Details
+                  </DetailsButton>
+
+
                 </div>
-                </>
-            ): (
-                <div className="error-message-container">
-                    <div className="error-icon">
-                        <img src={errorIcon} alt="error" />
-                    </div>
-                    <div className="error-text">No Data available</div>
+              </>
+            ) : (
+              <div className="error-message-container">
+                <div className="error-icon">
+                  <img src={errorIcon} alt="error" />
                 </div>
+                <div className="error-text">No Data available</div>
+              </div>
             ))
-            
+
             : (
-            <div className={error ? 'error-container' : 'success-container'}>
+              <div className={error ? 'error-container' : 'success-container'}>
                 {error ? (
                   <>
                     <ErrorOutlineIcon sx={{ fontSize: 80, color: '#d32f2f' }} />
-                    <div className="text error-text">{ applicationResponse }</div>
+                    <div className="text error-text">{applicationResponse}</div>
                   </>
                 ) : (
                   <>
                     <CheckCircleOutlineIcon sx={{ fontSize: 80, color: '#4caf50' }} />
-                    <div className="text success-text">{ applicationResponse }</div>
+                    <div className="text success-text">{applicationResponse}</div>
                   </>
                 )}
-                </div>
-        )
+              </div>
+            )
         }
 
       </Modal>
-      
+
       <Backdrop
         sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
         open={fieldLoading !== null}
@@ -1274,3 +1314,15 @@ const CitizenApplication = () => {
 
 export default CitizenApplication;
 
+
+
+/*
+import { useNavigate } from 'react-router-dom';
+
+const navigate = useNavigate();
+
+<button onClick={() => navigate('/application-details')}>
+  Go to Details
+</button>
+
+*/
