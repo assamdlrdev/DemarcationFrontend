@@ -1,6 +1,8 @@
 import styled from '@emotion/styled';
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
+import api from "../../api/axios";
 
 const Page = styled.div`
   background: #f4f6f8;
@@ -125,26 +127,91 @@ const CloseBtn = styled.button`
 /* ---------- Component ---------- */
 
 const ApplicationDetails = () => {
+
   const navigate = useNavigate();
 
   const [openPhoto, setOpenPhoto] = useState(false);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const data = {
-    district: 'Kamrup',
-    subDivision: 'Guwahati',
-    circle: 'Dispur',
-    mouza: 'Beltola',
-    lot: '12',
-    village: 'Beltola (V123)',
-    pattaType: 'Periodic',
-    pattaNumber: '45',
-    dagNumber: '78',
-    pattadarName: 'Rahul Sharma',
-    ekhajana: '₹1,200',
-    existingArea: '1 Katha 10 Lessa',
-    newArea: '2 Katha',
-    photoUrl: 'https://thumbs.dreamstime.com/b/demo-text-businessman-dark-vintage-background-108609906.jpg',
+  /* ---------- API CALL ---------- */
+  const { id: applicationNo } = useParams();
+
+  useEffect(() => {
+    // console.log("application No: ", applicationNo);
+    if (applicationNo) {
+      getApplicationDetails();
+    }
+  }, [applicationNo]);
+
+
+  const getApplicationDetails = async () => {
+    const controller = new AbortController();
+    try {
+      setLoading(true);
+
+      const postData = {
+        application_no: String(applicationNo),
+      };
+
+      console.log("postData: ", postData);
+
+      const response = await api.post(
+        'get-application-details',
+        postData,
+        { signal: controller.signal }
+      );
+
+      const app = response?.data?.data?.application;
+      const area = app?.demarcationdagareas;
+
+      console.log('Response: ', response?.data);
+
+      if (!app) {
+        throw new Error('Application not found');
+      }
+
+      console.log('File: ', 'http://127.0.0.1:8000/api/storage/' + app?.attachment?.file_path);
+
+      setData({
+        district: app.dist_name,
+        subDivision: app.subdiv_name,
+        circle: app.cir_name,
+        mouza: app.mouza_name,
+        lot: app.lot_name,
+        village: app.vill_name,
+
+        pattaType: area?.patta_type_code ?? '—',
+        pattaNumber: area?.patta_no ?? '—',
+        dagNumber: area?.dag_no ?? '—',
+        pattadarName: area.pattadar_name,
+        ekhajana: '—',
+
+        existingArea: `${area?.dag_area_b || 0} Bigha ${area?.dag_area_k || 0} Katha ${area?.dag_area_lc || 0} Lessa`,
+        newArea: `${area?.app_dag_area_b || 0} Bigha ${area?.app_dag_area_k || 0} Katha ${area?.app_dag_area_lc || 0} Lessa`,
+
+        photoUrl: 'http://127.0.0.1:8000/storage/' + app?.attachment?.file_path,
+      });
+    } catch (err) {
+      if (axios.isCancel(err) || err.code === 'ERR_CANCELED') return;
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+    return () => controller.abort();
   };
+
+
+
+  /* ---------- UI STATES ---------- */
+  if (loading) {
+    return <Page>Loading application details…</Page>;
+  }
+
+  if (error) {
+    return <Page>{error}</Page>;
+  }
 
   return (
     <Page>
@@ -168,11 +235,11 @@ const ApplicationDetails = () => {
         <Section>
           <SectionTitle>Land Record Details</SectionTitle>
           <Grid>
-            <Field><Label>Patta Type</Label><Value value={data.pattaType} readOnly /></Field>
+            <Field><Label>Patta Type</Label><Value value={'খেৰাজ ম্যাদী'} readOnly /></Field>
             <Field><Label>Patta Number</Label><Value value={data.pattaNumber} readOnly /></Field>
             <Field><Label>Dag Number</Label><Value value={data.dagNumber} readOnly /></Field>
             <Field><Label>Pattadar Name</Label><Value value={data.pattadarName} readOnly /></Field>
-            <Field><Label>Ekhajana Amount</Label><Value value={data.ekhajana} readOnly /></Field>
+            {/* <Field><Label>Ekhajana Amount</Label><Value value={data.ekhajana} readOnly /></Field> */}
           </Grid>
         </Section>
 
@@ -185,17 +252,16 @@ const ApplicationDetails = () => {
           </Grid>
         </Section>
 
-        {/* Photo */}
+        {/* Documents */}
         <Section>
           <SectionTitle>Documents</SectionTitle>
-          <Button onClick={() => setOpenPhoto(true)}>View Photo</Button> &nbsp;
+          <Button onClick={() => setOpenPhoto(true)}>View Photo</Button>{' '}
           <Button
-            style={{ background: 'gray', color: '#fff' }}
+            style={{ background: 'gray' }}
             onClick={() => navigate('/')}
           >
             Go Back
           </Button>
-
         </Section>
       </Card>
 
