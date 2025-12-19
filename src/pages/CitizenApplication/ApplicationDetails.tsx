@@ -255,7 +255,7 @@ const ApplicationDetails = () => {
         {/* Documents */}
         <Section>
           <SectionTitle>Documents</SectionTitle>
-          <Button onClick={() => setOpenPhoto(true)}>View Photo</Button>{' '}
+          <Button onClick={() => setOpenPhoto(true)}>View Land Photo</Button>{' '}
           <Button
             style={{ background: 'gray' }}
             onClick={() => navigate('/')}

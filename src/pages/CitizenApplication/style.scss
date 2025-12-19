@@ -370,3 +370,28 @@
   border-radius: 4px;
   background: #f9f9f9;
 }
+
+/**Biswajit**/
+.ekhajana-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  margin: 16px 0;
+  background: #f0f7ff;
+  border: 1px solid #cfe3ff;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+.ekhajana-label {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.ekhajana-amount {
+  font-weight: 700;
+  font-size: 18px;
+  color: #0d6efd; /* govt blue */
+}
+

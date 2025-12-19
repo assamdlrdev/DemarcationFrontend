@@ -1188,11 +1188,13 @@ const CitizenApplication = () => {
 
             {
               ekhajanaPrice > 0 && (
-                <div className="ekhajana-info">
-                  <div className="ekhajana-text">
-                    Ekhajana Amount to be paid: ₹ {ekhajanaPrice.toFixed(2)}
-                  </div>
+                <div className="ekhajana-card">
+                  <span className="ekhajana-label">
+                    Ekhajana Amount to be paid
+                  </span>
+                  <span className="ekhajana-amount">₹ {ekhajanaPrice.toFixed(2)}</span>
                 </div>
+
               )
             }
           </>
@@ -1281,10 +1283,6 @@ const CitizenApplication = () => {
                       )}
                     />
                   </div>
-
-                  {/* <DetailsButton onClick={() => navigate(`/application-details/${id}`)}>
-                    View Application Details
-                  </DetailsButton> */}
 
 
                 </div>
