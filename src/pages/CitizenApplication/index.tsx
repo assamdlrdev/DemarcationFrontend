@@ -97,6 +97,8 @@ const CitizenApplication = () => {
   const [pattadarData, setPattadarData] = useState([]);
   const [applicationResponse, setApplicationResponse] = useState("");
   const [submittedFormValues, setSubmittedFormValues] = useState<ModalFormData | null>(null);
+  const [applicationNo, setApplicationNo] = useState("");
+  const [pattadarName, setSelectedPattadarName] = useState("");
   const formSubmittedRef = useRef(false);
 
   const navigate = useNavigate();
@@ -330,9 +332,10 @@ const CitizenApplication = () => {
     }
   };
 
-  const handlePattaDarChange = (value: string) => {
+  const handlePattaDarChange = (evnt) => {
     // Handle pattadar change if needed
     // This function is called when pattadar is selected
+    console.log(evnt);
   };
 
   const handlePattaNoChange = async (value: string) => {
@@ -650,7 +653,7 @@ const CitizenApplication = () => {
     formSubmittedRef.current = false; // Reset form submission ref
   };
 
-  // console.log("areaTableData: ", areaTableData);
+  console.log("pattadarName: ", pattadarName);
 
   const onModalSubmit = async (data: ModalFormData) => {
     setSubmitLoading(true);
@@ -666,6 +669,7 @@ const CitizenApplication = () => {
       cir_code: circleCode,
       mouza_pargona_code: mouzaCode,
       lot_no: lotNo,
+      pattadar_name: pattadarName,
       vill_townprt_code: villTownprtCode,
       dag_area_b: areaTableData[0].bigha,
       dag_area_k: areaTableData[0].katha,
@@ -705,7 +709,7 @@ const CitizenApplication = () => {
 
       console.log("err?.response?: ", response?.data?.data?.message);
       setApplicationResponse(response?.data?.data?.message);
-
+      setApplicationNo(response?.data?.data?.app_no);
     } catch (err: any) {
       setError(true);
       console.log("Error response: ", err?.response);
@@ -1062,12 +1066,24 @@ const CitizenApplication = () => {
                   {...field}
                   label="Pattadar"
                   disabled={isPattadarDisabled}
-                  onChange={
-                    (e) => {
-                      field.onChange(e);
-                      // handlePattaDarChange(e.target.value ?? '')
-                    }
-                  }
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+
+                    field.onChange(selectedId);
+
+                    const selectedItem = pattadarData.find(
+                      (item) => item.pdar_id === selectedId
+                    );
+
+                    setSelectedPattadarName(selectedItem?.pdar_name || '');
+                  }}
+
+                  // onChange={
+                  //   (e) => {
+                  //     field.onChange(e);
+                  //     handlePattaDarChange(e);
+                  //   }
+                  // }
                 >
                   {
                     pattadarData?.map((item, key) => {
@@ -1267,9 +1283,9 @@ const CitizenApplication = () => {
                     />
                   </div>
 
-                  <DetailsButton onClick={() => navigate(`/application-details/${id}`)}>
+                  {/* <DetailsButton onClick={() => navigate(`/application-details/${id}`)}>
                     View Application Details
-                  </DetailsButton>
+                  </DetailsButton> */}
 
 
                 </div>
@@ -1294,6 +1310,11 @@ const CitizenApplication = () => {
                   <>
                     <CheckCircleOutlineIcon sx={{ fontSize: 80, color: '#4caf50' }} />
                     <div className="text success-text">{applicationResponse}</div>
+
+                    <DetailsButton onClick={() => navigate(`/application-details/${applicationNo}`)}>
+                      View Application Details
+                    </DetailsButton>
+
                   </>
                 )}
               </div>
