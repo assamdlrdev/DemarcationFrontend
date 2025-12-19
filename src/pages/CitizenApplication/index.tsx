@@ -896,7 +896,6 @@ const CitizenApplication = () => {
                 render: (_row, index) => index + 1
               },
               { header: 'Village Name', accessor: 'loc_name' },
-              { header: 'Code', accessor: 'village_code' },
               {
                 header: 'Action',
                 render: (row) => (
