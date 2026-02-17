@@ -65,7 +65,20 @@ interface ModalFormData {
   pattadarId?: string
 }
 
+
+
+
 const CitizenApplication = () => {
+  /* ================= CAMERA + GEO STATE ================= */
+
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [location, setLocation] = useState<any>(null);
+  const [cameraError, setCameraError] = useState("");
+
+
   const [isModalProceedClicked, setIsModalProceedClicked] = useState(false);
   const [areaTableData, setAreaTableData] = useState([{ bigha: 0, lessa: 0, katha: 0 }]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -106,6 +119,102 @@ const CitizenApplication = () => {
   useEffect(() => {
     getDistricts();
   }, []);
+
+
+  //new 
+  /* ================= ENABLE GPS ================= */
+
+  const enableGPS = () => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject("Geolocation not supported");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const loc = {
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            accuracy: pos.coords.accuracy,
+          };
+
+          // Optional: enforce accuracy limit
+          if (pos.coords.accuracy > 50) {
+            reject("GPS accuracy too low. Please try again outdoors.");
+            return;
+          }
+
+          setLocation(loc);
+          resolve(loc);
+        },
+        () => reject("Location permission denied"),
+        { enableHighAccuracy: true, timeout: 15000 }
+      );
+    });
+  };
+
+  /* ================= OPEN CAMERA ================= */
+
+  const openCamera = async () => {
+    try {
+      await enableGPS();
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+      });
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+
+      setCameraOpen(true);
+      setCameraError("");
+    } catch (err: any) {
+      setCameraError(err.toString());
+    }
+  };
+
+  /* ================= CAPTURE PHOTO ================= */
+
+  const capturePhoto = (onChange: any) => {
+    if (!videoRef.current || !canvasRef.current || !location) {
+      setCameraError("Camera or GPS not ready");
+      return;
+    }
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext("2d");
+    ctx?.drawImage(video, 0, 0);
+
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+
+      const file = new File([blob], `land-${Date.now()}.jpg`, {
+        type: "image/jpeg",
+      });
+
+      const geoTaggedFile: any = file;
+      geoTaggedFile.latitude = location.latitude;
+      geoTaggedFile.longitude = location.longitude;
+      geoTaggedFile.accuracy = location.accuracy;
+      geoTaggedFile.timestamp = new Date().toISOString();
+
+      onChange(geoTaggedFile);
+
+      // stop camera
+      const stream = video.srcObject as MediaStream;
+      stream?.getTracks().forEach((track) => track.stop());
+
+      setCameraOpen(false);
+    }, "image/jpeg", 0.9);
+  };
+  // new end
 
   const getDistricts = async () => {
     const controller = new AbortController();
@@ -693,6 +802,13 @@ const CitizenApplication = () => {
       formData.append('land_photo', finalData.landPhoto);
     }
 
+    if (finalData.landPhoto?.latitude) {
+      formData.append('latitude', finalData.landPhoto.latitude);
+      formData.append('longitude', finalData.landPhoto.longitude);
+      formData.append('accuracy', finalData.landPhoto.accuracy);
+    }
+
+
     console.log('Final submission data:', finalData);
     console.log('FILE →', formData.get('land_photo'));
 
@@ -1077,12 +1193,12 @@ const CitizenApplication = () => {
                     setSelectedPattadarName(selectedItem?.pdar_name || '');
                   }}
 
-                  // onChange={
-                  //   (e) => {
-                  //     field.onChange(e);
-                  //     handlePattaDarChange(e);
-                  //   }
-                  // }
+                // onChange={
+                //   (e) => {
+                //     field.onChange(e);
+                //     handlePattaDarChange(e);
+                //   }
+                // }
                 >
                   {
                     pattadarData?.map((item, key) => {
@@ -1110,72 +1226,90 @@ const CitizenApplication = () => {
                 rules={{ required: 'Land photo is required' }}
                 render={({ field }) => (
                   <Box className="upload-photo-container">
-                    <label htmlFor="land-photo-upload" className="upload-photo-label">
-                      <input
-                        id="land-photo-upload"
-                        type="file"
-                        hidden
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          field.onChange(file);
-                        }}
-                      />
-                      <Box
-                        className={`upload-photo-button ${modalErrors.landPhoto ? 'upload-photo-button-error' : ''}`}
-                        component="div"
-                        sx={{
-                          ...(modalErrors.landPhoto && {
-                            border: '2px dashed #d32f2f',
-                            borderColor: '#d32f2f',
-                          }),
-                        }}
-                      >
-                        {field.value && field.value instanceof File ? (
-                          <Box className="upload-photo-preview">
-                            <ImageIcon sx={{ fontSize: 36, color: '#728fd9' }} />
-                            <Box className="upload-photo-info">
-                              <Box className="upload-photo-name">{field.value.name}</Box>
-                              <Box className="upload-photo-size">
-                                {(field.value.size / 1024 / 1024).toFixed(2)} MB
+                    <Box
+                      className={`upload-photo-button ${modalErrors.landPhoto ? 'upload-photo-button-error' : ''}`}
+                      sx={{
+                        cursor: "pointer",
+                        ...(modalErrors.landPhoto && {
+                          border: '2px dashed #d32f2f',
+                        }),
+                      }}
+                      onClick={!field.value ? openCamera : undefined}
+                    >
+                      {field.value && field.value instanceof File ? (
+                        <Box className="upload-photo-preview">
+                          <ImageIcon sx={{ fontSize: 36, color: '#728fd9' }} />
+                          <Box className="upload-photo-info">
+                            <Box className="upload-photo-name">{field.value.name}</Box>
+                            <Box className="upload-photo-size">
+                              {(field.value.size / 1024 / 1024).toFixed(2)} MB
+                            </Box>
+
+                            {field.value.latitude && (
+                              <Box sx={{ fontSize: 12, color: "#666" }}>
+                                📍 {field.value.latitude}, {field.value.longitude}
                               </Box>
-                            </Box>
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                field.onChange(null);
-                                const input = document.getElementById('land-photo-upload') as HTMLInputElement;
-                                if (input) input.value = '';
-                              }}
-                              sx={{
-                                mt: 0.5,
-                                textTransform: 'none',
-                                borderColor: '#d32f2f',
-                                color: '#d32f2f',
-                                '&:hover': {
-                                  borderColor: '#d32f2f',
-                                  backgroundColor: 'rgba(211, 47, 47, 0.04)'
-                                }
-                              }}
-                            >
-                              Remove
-                            </Button>
+                            )}
                           </Box>
-                        ) : (
-                          <Box className="upload-photo-placeholder">
-                            <CloudUploadIcon sx={{ fontSize: 36, color: '#728fd9', mb: 0.5 }} />
-                            <Box className="upload-photo-text">
-                              <Box className="upload-photo-title">Upload Land Photo</Box>
-                              <Box className="upload-photo-subtitle">Click to browse or drag and drop</Box>
-                              <Box className="upload-photo-hint">Supports: JPG, PNG, GIF (Max 10MB)</Box>
+
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              field.onChange(null);
+                            }}
+                            sx={{
+                              mt: 0.5,
+                              textTransform: 'none',
+                              borderColor: '#d32f2f',
+                              color: '#d32f2f',
+                            }}
+                          >
+                            Remove
+                          </Button>
+                        </Box>
+                      ) : (
+                        <Box className="upload-photo-placeholder">
+                          <CloudUploadIcon sx={{ fontSize: 36, color: '#728fd9', mb: 0.5 }} />
+                          <Box className="upload-photo-text">
+                            <Box className="upload-photo-title">Capture Land Photo</Box>
+                            <Box className="upload-photo-subtitle">
+                              Live camera + GPS required
                             </Box>
                           </Box>
+                        </Box>
+                      )}
+                    </Box>
+
+                    {/* CAMERA VIEW */}
+                    {cameraOpen && (
+                      <Box sx={{ mt: 2 }}>
+                        <video
+                          ref={videoRef}
+                          autoPlay
+                          playsInline
+                          style={{ width: "100%", borderRadius: 8 }}
+                        />
+
+                        <canvas ref={canvasRef} style={{ display: "none" }} />
+
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          sx={{ mt: 1 }}
+                          onClick={() => capturePhoto(field.onChange)}
+                        >
+                          Capture Photo
+                        </Button>
+
+                        {cameraError && (
+                          <FormHelperText error>{cameraError}</FormHelperText>
                         )}
                       </Box>
-                    </label>
+                    )}
+
                     {modalErrors.landPhoto && (
                       <FormHelperText error sx={{ mt: 1, ml: 1 }}>
                         {modalErrors.landPhoto.message}
@@ -1185,6 +1319,8 @@ const CitizenApplication = () => {
                 )}
               />
             </div>
+
+
 
             {
               ekhajanaPrice > 0 && (
