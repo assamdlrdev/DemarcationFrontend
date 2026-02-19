@@ -18,9 +18,4 @@ body {
   background: #F4F6FF;
 }
 
-.main-container{
-  flex: 1;
-  width: 70%;
-  margin: 0 auto;
-  padding: 24px 0 70px 0;
-}
+

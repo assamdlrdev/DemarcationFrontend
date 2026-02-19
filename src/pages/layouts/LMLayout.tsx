@@ -1,6 +1,10 @@
+import Footer from "../../components/Footer";
+import Header from "../../components/Header";
+import SidebarMenu from "../../components/SidebarMenu";
 import Constants from "../../config/Constants";
 import StorageService from "../../services/StorageService";
 import { Navigate, Outlet } from "react-router-dom";
+import './layout.scss';
 
 
 export default function LMLayout() {
@@ -35,6 +39,16 @@ export default function LMLayout() {
 
 
     return (
-        <Outlet />
+        <>
+            <Header />
+            <div className="content-wrapper">
+                <SidebarMenu />
+                <main className="main-container">
+                    <Outlet />
+                </main>
+            </div>
+            <Footer />
+        </>
+        
     );
 };

@@ -16,9 +16,9 @@ import PublicLayout from './pages/layouts/PublicLayout';
 function App() {
   return (
     <>
-      <Header />
-
-        <main className="main-container">
+      
+        {/* <SidebarMenu /> */}
+        
           
 
           <Routes>
@@ -30,6 +30,7 @@ function App() {
               />
             </Route>
             
+            
             <Route path="/dashboard" element={<MainDash />} />
             <Route element={<LMLayout />}>
               <Route path="/lm-dashboard" element={<LMDashboard />} />
@@ -38,9 +39,8 @@ function App() {
               <Route path="/co-dashboard" element={<CODashboard />} />
             </Route>
           </Routes>
-        </main>
 
-      <Footer />
+      
     </>
   );
 }
