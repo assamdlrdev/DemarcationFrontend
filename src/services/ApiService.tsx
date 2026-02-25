@@ -36,6 +36,7 @@ const ApiService = {
     get: async (endpoint: string, data: any | null = null) => {
         const token = await StorageService.getJwtCookie();
         var headers = {
+            'Accept': 'application/json',
             'Content-Type': 'application/json'
         };
         if (token && token !== 'undefined') {
@@ -46,7 +47,7 @@ const ApiService = {
             const result = await fetch(`${Constants.API_BASE_URL + endpoint}`, {
                 method: 'POST',
                 headers: headers,
-                credentials: 'include',
+                // credentials: 'include',
                 body: JSON.stringify(parsedData)
             });
             const response = await result.json();

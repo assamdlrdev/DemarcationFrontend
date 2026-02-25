@@ -12,6 +12,7 @@ import LMDashboard from './pages/lm/LMDashboard';
 import COLayout from './pages/layouts/COLayout';
 import CODashboard from './pages/co/CODashboard';
 import PublicLayout from './pages/layouts/PublicLayout';
+import LMApplicationDetails from './pages/lm/LMApplicationDetails';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
             <Route path="/dashboard" element={<MainDash />} />
             <Route element={<LMLayout />}>
               <Route path="/lm-dashboard" element={<LMDashboard />} />
+              <Route path="/lm-application-details" element={<LMApplicationDetails />} />
             </Route>
             <Route element={<COLayout />}>
               <Route path="/co-dashboard" element={<CODashboard />} />
