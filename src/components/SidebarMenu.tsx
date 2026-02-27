@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import StorageService from "../services/StorageService";
+import Constants from "../config/Constants";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface NavItem {
@@ -13,6 +14,7 @@ interface NavItem {
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", icon: "⊞", route: "/lm-dashboard" },
+  { label: "Logout", icon: "⊞", route: "" },
   // {
   //   label: "Land Records",
   //   icon: "📋",
@@ -68,6 +70,8 @@ export default function SidebarMenu() {
   const [userDesigCode, setUserDesigCode] = useState<string>('');
 
   const navigate = useNavigate();
+  
+  
 
   useEffect(() => {
     getUser();
@@ -89,7 +93,13 @@ export default function SidebarMenu() {
       setActiveItem(item.label);
       setExpandedItem(null);
       console.log(item.route);
-      navigate(item.route);
+      if(item.label == 'Logout') {
+        StorageService.jwtRemove();
+        window.location.href = Constants.SINGLESIGN_URL;
+      }
+      else {
+        navigate(item.route);
+      }
     }
     
   };
