@@ -140,7 +140,7 @@ const CitizenApplication = () => {
           };
 
           // Optional: enforce accuracy limit
-          if (pos.coords.accuracy > 50) {
+          if (pos.coords.accuracy > 100) {
             reject("GPS accuracy too low. Please try again outdoors.");
             return;
           }

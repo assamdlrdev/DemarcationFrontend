@@ -6,6 +6,8 @@ import { Navigate, Outlet } from "react-router-dom";
 export default function COLayout() {
 
     const user = StorageService.getJwtCookie();
+
+    
     
     if(!user) {
         // return <Navigate to="/login" replace />;
@@ -13,9 +15,7 @@ export default function COLayout() {
         return;
     }
 
-    const decodedData: any = StorageService.getJwtCookieData(user);
-    const userData: any = decodedData.data;
-
+    const userData: any = StorageService.getJwtCookieData(user);
     
 
     if(!userData) {

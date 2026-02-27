@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import ApiService from "../../services/ApiService";
 import Loader from "../../components/Loader";
+import ModalComponent from "../../components/Modal/modalComponent";
+import AlertModal from "../../components/AlertModal";
 
 // type AddressType = {
 //     id: string;
@@ -25,6 +27,7 @@ const LMApplicationDetails: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [loading, setLoading] = useState<boolean>(false);
+    const [modalOpen, setModalOpen] = useState<boolean>(false);
 
     const [appAddress, setAppAddress] = useState<AddressType[]>([]);
     const [appContactNo, setAppContactNo] = useState<ContactType[]>([]);
@@ -140,8 +143,7 @@ const LMApplicationDetails: React.FC = () => {
         });
     };
 
-    const handleSubmit = async () => {
-        // console.log(remarks, appAddress, appContactNo, pdarContactNo, pdarAddress, applicationDetails, applicantDetails, dagDetails, pattadarDetails, locationDetails);
+    const handleModalSubmit = async() => {
         const data = {
             application_details: JSON.stringify(applicationDetails),
             applicant_contact: JSON.stringify(appContactNo),
@@ -165,10 +167,10 @@ const LMApplicationDetails: React.FC = () => {
 
         navigate('/dashboard');
         return;
+    };
 
-
-        
-
+    const handleSubmit = () => {
+        setModalOpen(true);
     };
 
 
@@ -177,6 +179,7 @@ const LMApplicationDetails: React.FC = () => {
         <>
             {!loading && <ApplicationDetailsLm applicantDetails={applicantDetails} pattadarDetails={pattadarDetails} dagDetails={dagDetails} applicationDetails={applicationDetails} locationDetails={locationDetails} handleApplicantAddr={handleApplicantAddr} handleApplicantContact={handleApplicantContact} handlePattadarAddr={handlePattadarAddr} handlePattadarContact={handlePattadarContact} appAddress={appAddress} appContactNo={appContactNo} pdarContactNo={pdarContactNo} pdarAddress={pdarAddress} remarks={remarks} setRemarks={setRemarks} handleSubmit={handleSubmit} />}
             {loading && <Loader type="fullPage" />}
+            <AlertModal modalOpen={modalOpen} setModalOpen={setModalOpen} title="Warning!" message="Are you sure you want to proceed with the submission? This action cannot be undone." handleSubmit={handleModalSubmit} />
         </>
     );
 };
