@@ -1,3 +1,6 @@
+import Footer from "../../components/Footer";
+import Header from "../../components/Header";
+import SidebarMenu from "../../components/SidebarMenu";
 import Constants from "../../config/Constants";
 import StorageService from "../../services/StorageService";
 import { Navigate, Outlet } from "react-router-dom";
@@ -33,6 +36,15 @@ export default function COLayout() {
 
 
     return (
-        <Outlet />
+        <>
+            <Header />
+            <div className="content-wrapper">
+                <SidebarMenu />
+                <main className="main-container">
+                    <Outlet />
+                </main>
+            </div>
+            <Footer />
+        </>
     );
 };

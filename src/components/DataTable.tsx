@@ -105,12 +105,13 @@ function StatusBadge({ status }: StatusBadgeProps) {
 
 type DatatableType = {
   info: ApplicationType[];
-  handleBtnClick: (e: any) => void
+  handleBtnClick: (e: any) => void;
+  title?: string;
 };
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
-const DataTable: React.FC<DatatableType> = ({info, handleBtnClick}) => {
+const DataTable: React.FC<DatatableType> = ({info, handleBtnClick, title="Submitted Applications"}) => {
   const [data, setData]                 = useState<ApplicationType[]>(info);
   const [sortKey, setSortKey]           = useState<keyof ApplicationType | null>(null);
   const [sortDir, setSortDir]           = useState<SortDir>("asc");
@@ -184,7 +185,7 @@ const DataTable: React.FC<DatatableType> = ({info, handleBtnClick}) => {
         {/* ── Header ── */}
         <div style={styles.header}>
           <div>
-            <h1 style={styles.title}>Submitted Applications</h1>
+            <h1 style={styles.title}>{title}</h1>
             <p style={styles.subtitle}>{sorted.length} applications</p>
           </div>
           <div style={styles.searchBox}>
