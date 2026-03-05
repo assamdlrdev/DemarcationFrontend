@@ -65,7 +65,20 @@ interface ModalFormData {
   pattadarId?: string
 }
 
+
+
+
 const CitizenApplication = () => {
+  /* ================= CAMERA + GEO STATE ================= */
+
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [location, setLocation] = useState<any>(null);
+  const [cameraError, setCameraError] = useState("");
+
+
   const [isModalProceedClicked, setIsModalProceedClicked] = useState(false);
   const [areaTableData, setAreaTableData] = useState([{ bigha: 0, lessa: 0, katha: 0 }]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -116,108 +129,101 @@ const CitizenApplication = () => {
     getDistricts();
   }, []);
 
-  
-  useEffect(() => {
-    console.log("useEffect is running");
 
-    // Start the webcam stream when the component mounts
-    if (navigator.mediaDevices && !isWebcamActive) {
-      console.log("Attempting to access webcam");
+  //new 
+  /* ================= ENABLE GPS ================= */
 
-      navigator.mediaDevices
-        .getUserMedia({ video: true })
-        .then((stream) => {
-          console.log("Webcam access granted");
-
-          // Check if videoRef is defined after the component renders
-          if (videoRef.current) {
-            console.log("Video element found", videoRef.current);
-            videoRef.current.srcObject = stream;
-            videoRef.current.onloadedmetadata = () => {
-              setLoading(false); // Set loading to false once the video metadata is loaded
-              console.log("Video metadata loaded");
-            };
-            setIsWebcamActive(true);
-          } else {
-            console.error("Video element not found");
-          }
-        })
-        .catch((err) => {
-          console.error('Error accessing webcam:', err);
-        });
-    } else {
-      console.log("Webcam already active");
-    }
-
-    return () => {
-      // Stop the webcam stream when the component unmounts
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        const tracks = stream.getTracks();
-        tracks.forEach((track) => track.stop());
-        console.log('Webcam stream stopped!');
+  const enableGPS = () => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject("Geolocation not supported");
+        return;
       }
-    };
-  }, [isWebcamActive]);
 
-  // Capture the image from the webcam
-  const handleCapture = () => {
-    if (!videoRef.current || !canvasRef.current) {
-      console.error('Video or canvas element not found');
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const loc = {
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            accuracy: pos.coords.accuracy,
+          };
+
+          // Optional: enforce accuracy limit
+          if (pos.coords.accuracy > 100) {
+            reject("GPS accuracy too low. Please try again outdoors.");
+            return;
+          }
+
+          setLocation(loc);
+          resolve(loc);
+        },
+        () => reject("Location permission denied"),
+        { enableHighAccuracy: true, timeout: 15000 }
+      );
+    });
+  };
+
+  /* ================= OPEN CAMERA ================= */
+
+  const openCamera = async () => {
+    try {
+      await enableGPS();
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+      });
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+
+      setCameraOpen(true);
+      setCameraError("");
+    } catch (err: any) {
+      setCameraError(err.toString());
+    }
+  };
+
+  /* ================= CAPTURE PHOTO ================= */
+
+  const capturePhoto = (onChange: any) => {
+    if (!videoRef.current || !canvasRef.current || !location) {
+      setCameraError("Camera or GPS not ready");
       return;
     }
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
 
-    // Check if video element is ready
-    if (!video.videoWidth || !video.videoHeight) {
-      console.error('Video feed is not ready');
-      return;
-    }
-
-    console.log('Capture button clicked');
-
-    // Set canvas dimensions to match the video
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height); // Capture video frame
-      const dataUrl = canvas.toDataURL('image/png'); // Convert to image (Base64)
-      console.log('Image captured:', dataUrl);
-      setImage(dataUrl); // Store the captured image
-      setShowCropper(true); // Show the cropping tool
-    }
+
+    const ctx = canvas.getContext("2d");
+    ctx?.drawImage(video, 0, 0);
+
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+
+      const file = new File([blob], `land-${Date.now()}.jpg`, {
+        type: "image/jpeg",
+      });
+
+      const geoTaggedFile: any = file;
+      geoTaggedFile.latitude = location.latitude;
+      geoTaggedFile.longitude = location.longitude;
+      geoTaggedFile.accuracy = location.accuracy;
+      geoTaggedFile.timestamp = new Date().toISOString();
+
+      onChange(geoTaggedFile);
+
+      // stop camera
+      const stream = video.srcObject as MediaStream;
+      stream?.getTracks().forEach((track) => track.stop());
+
+      setCameraOpen(false);
+    }, "image/jpeg", 0.9);
   };
-
-  // Crop the image using Cropper.js
-  const handleCrop = () => {
-    const cropper = document.getElementById('cropper') as any;
-    if (cropper) {
-      const croppedData = cropper.getCroppedCanvas().toDataURL('image/png');
-      setCroppedImage(croppedData); // Store cropped image
-      setShowCropper(false); // Hide cropper after cropping
-      console.log('Cropped image:', croppedData);
-    }
-  };
-
-  // Reset the image and cropping tool
-  const handleReset = () => {
-    setImage(null);
-    setCroppedImage(null);
-    setShowCropper(false);
-    console.log('Reset image and cropper');
-  };
-
-
-
-
-  // const handleReset = () => {
-  //   setImage(null);
-  // };
-
-
+  // new end
 
   const getDistricts = async () => {
     const controller = new AbortController();
@@ -803,6 +809,13 @@ const CitizenApplication = () => {
       formData.append('land_photo', finalData.landPhoto);
     }
 
+    if (finalData.landPhoto?.latitude) {
+      formData.append('latitude', finalData.landPhoto.latitude);
+      formData.append('longitude', finalData.landPhoto.longitude);
+      formData.append('accuracy', finalData.landPhoto.accuracy);
+    }
+
+
     console.log('Final submission data:', finalData);
     console.log('FILE →', formData.get('land_photo'));
 
@@ -1286,12 +1299,12 @@ const CitizenApplication = () => {
                     setSelectedPattadarName(selectedItem?.pdar_name || '');
                   }}
 
-                  // onChange={
-                  //   (e) => {
-                  //     field.onChange(e);
-                  //     handlePattaDarChange(e);
-                  //   }
-                  // }
+                // onChange={
+                //   (e) => {
+                //     field.onChange(e);
+                //     handlePattaDarChange(e);
+                //   }
+                // }
                 >
                   {
                     pattadarData?.map((item, key) => {
@@ -1320,73 +1333,90 @@ const CitizenApplication = () => {
                 rules={{ required: 'Land photo is required' }}
                 render={({ field }) => (
                   <Box className="upload-photo-container">
-                    <label htmlFor="land-photo-upload" className="upload-photo-label">
-                      <input
-                        id="land-photo-upload"
-                        type="file"
-                        hidden
-                        accept="image/*"
-                        capture="camera"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          field.onChange(file);
-                        }}
-                      />
-                      <Box
-                        className={`upload-photo-button ${modalErrors.landPhoto ? 'upload-photo-button-error' : ''}`}
-                        component="div"
-                        sx={{
-                          ...(modalErrors.landPhoto && {
-                            border: '2px dashed #d32f2f',
-                            borderColor: '#d32f2f',
-                          }),
-                        }}
-                      >
-                        {field.value && field.value instanceof File ? (
-                          <Box className="upload-photo-preview">
-                            <ImageIcon sx={{ fontSize: 36, color: '#728fd9' }} />
-                            <Box className="upload-photo-info">
-                              <Box className="upload-photo-name">{field.value.name}</Box>
-                              <Box className="upload-photo-size">
-                                {(field.value.size / 1024 / 1024).toFixed(2)} MB
+                    <Box
+                      className={`upload-photo-button ${modalErrors.landPhoto ? 'upload-photo-button-error' : ''}`}
+                      sx={{
+                        cursor: "pointer",
+                        ...(modalErrors.landPhoto && {
+                          border: '2px dashed #d32f2f',
+                        }),
+                      }}
+                      onClick={!field.value ? openCamera : undefined}
+                    >
+                      {field.value && field.value instanceof File ? (
+                        <Box className="upload-photo-preview">
+                          <ImageIcon sx={{ fontSize: 36, color: '#728fd9' }} />
+                          <Box className="upload-photo-info">
+                            <Box className="upload-photo-name">{field.value.name}</Box>
+                            <Box className="upload-photo-size">
+                              {(field.value.size / 1024 / 1024).toFixed(2)} MB
+                            </Box>
+
+                            {field.value.latitude && (
+                              <Box sx={{ fontSize: 12, color: "#666" }}>
+                                📍 {field.value.latitude}, {field.value.longitude}
                               </Box>
-                            </Box>
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                field.onChange(null);
-                                const input = document.getElementById('land-photo-upload') as HTMLInputElement;
-                                if (input) input.value = '';
-                              }}
-                              sx={{
-                                mt: 0.5,
-                                textTransform: 'none',
-                                borderColor: '#d32f2f',
-                                color: '#d32f2f',
-                                '&:hover': {
-                                  borderColor: '#d32f2f',
-                                  backgroundColor: 'rgba(211, 47, 47, 0.04)'
-                                }
-                              }}
-                            >
-                              Remove
-                            </Button>
+                            )}
                           </Box>
-                        ) : (
-                          <Box className="upload-photo-placeholder">
-                            <CloudUploadIcon sx={{ fontSize: 36, color: '#728fd9', mb: 0.5 }} />
-                            <Box className="upload-photo-text">
-                              <Box className="upload-photo-title">Upload Land Photo</Box>
-                              <Box className="upload-photo-subtitle">Click to browse or drag and drop</Box>
-                              <Box className="upload-photo-hint">Supports: JPG, PNG, GIF (Max 10MB)</Box>
+
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              field.onChange(null);
+                            }}
+                            sx={{
+                              mt: 0.5,
+                              textTransform: 'none',
+                              borderColor: '#d32f2f',
+                              color: '#d32f2f',
+                            }}
+                          >
+                            Remove
+                          </Button>
+                        </Box>
+                      ) : (
+                        <Box className="upload-photo-placeholder">
+                          <CloudUploadIcon sx={{ fontSize: 36, color: '#728fd9', mb: 0.5 }} />
+                          <Box className="upload-photo-text">
+                            <Box className="upload-photo-title">Capture Land Photo</Box>
+                            <Box className="upload-photo-subtitle">
+                              Live camera + GPS required
                             </Box>
                           </Box>
+                        </Box>
+                      )}
+                    </Box>
+
+                    {/* CAMERA VIEW */}
+                    {cameraOpen && (
+                      <Box sx={{ mt: 2 }}>
+                        <video
+                          ref={videoRef}
+                          autoPlay
+                          playsInline
+                          style={{ width: "100%", borderRadius: 8 }}
+                        />
+
+                        <canvas ref={canvasRef} style={{ display: "none" }} />
+
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          sx={{ mt: 1 }}
+                          onClick={() => capturePhoto(field.onChange)}
+                        >
+                          Capture Photo
+                        </Button>
+
+                        {cameraError && (
+                          <FormHelperText error>{cameraError}</FormHelperText>
                         )}
                       </Box>
-                    </label>
+                    )}
+
                     {modalErrors.landPhoto && (
                       <FormHelperText error sx={{ mt: 1, ml: 1 }}>
                         {modalErrors.landPhoto.message}
@@ -1396,6 +1426,8 @@ const CitizenApplication = () => {
                 )}
               />
             </div> */}
+
+
 
             {
               ekhajanaPrice > 0 && (
