@@ -1,8 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Select, MenuItem, FormControl, InputLabel, Button, FormHelperText, TextField, Box, Backdrop, CircularProgress } from '@mui/material';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import ImageIcon from '@mui/icons-material/Image';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import Modal from '../../components/Modal';
@@ -10,12 +8,14 @@ import Table from '../../components/Table';
 import './style.scss';
 import mapInfoIcon from '../../../public/svg/info.svg';
 import rightArrowIcon from '../../../public/svg/icon right.svg';
-import axios from 'axios';
 import api from "../../api/axios";
 import errorIcon from '../../../public/svg/empty-img-gray.svg';
 import Loader from '../../components/Loader';
 import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
+
+import Cropper from 'react-cropper';
+import 'cropperjs/dist/cropper.css';
 
 const DetailsButton = styled.button`
   padding: 10px 18px;
@@ -100,12 +100,124 @@ const CitizenApplication = () => {
   const [applicationNo, setApplicationNo] = useState("");
   const [pattadarName, setSelectedPattadarName] = useState("");
   const formSubmittedRef = useRef(false);
+  
+  const [image, setImage] = useState(null);
+  const [isWebcamActive, setIsWebcamActive] = useState(false);
+  const [showCropper, setShowCropper] = useState(false); // Show cropping tool after capture
+  const [croppedImage, setCroppedImage] = useState(null);
+
+  const videoRef = useRef<HTMLVideoElement | null>(null); // Ref for the video element
+  const canvasRef = useRef<HTMLCanvasElement | null>(null); // Ref for the canvas element
+
 
   const navigate = useNavigate();
 
   useEffect(() => {
     getDistricts();
   }, []);
+
+  
+  useEffect(() => {
+    console.log("useEffect is running");
+
+    // Start the webcam stream when the component mounts
+    if (navigator.mediaDevices && !isWebcamActive) {
+      console.log("Attempting to access webcam");
+
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((stream) => {
+          console.log("Webcam access granted");
+
+          // Check if videoRef is defined after the component renders
+          if (videoRef.current) {
+            console.log("Video element found", videoRef.current);
+            videoRef.current.srcObject = stream;
+            videoRef.current.onloadedmetadata = () => {
+              setLoading(false); // Set loading to false once the video metadata is loaded
+              console.log("Video metadata loaded");
+            };
+            setIsWebcamActive(true);
+          } else {
+            console.error("Video element not found");
+          }
+        })
+        .catch((err) => {
+          console.error('Error accessing webcam:', err);
+        });
+    } else {
+      console.log("Webcam already active");
+    }
+
+    return () => {
+      // Stop the webcam stream when the component unmounts
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        const tracks = stream.getTracks();
+        tracks.forEach((track) => track.stop());
+        console.log('Webcam stream stopped!');
+      }
+    };
+  }, [isWebcamActive]);
+
+  // Capture the image from the webcam
+  const handleCapture = () => {
+    if (!videoRef.current || !canvasRef.current) {
+      console.error('Video or canvas element not found');
+      return;
+    }
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+
+    // Check if video element is ready
+    if (!video.videoWidth || !video.videoHeight) {
+      console.error('Video feed is not ready');
+      return;
+    }
+
+    console.log('Capture button clicked');
+
+    // Set canvas dimensions to match the video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height); // Capture video frame
+      const dataUrl = canvas.toDataURL('image/png'); // Convert to image (Base64)
+      console.log('Image captured:', dataUrl);
+      setImage(dataUrl); // Store the captured image
+      setShowCropper(true); // Show the cropping tool
+    }
+  };
+
+  // Crop the image using Cropper.js
+  const handleCrop = () => {
+    const cropper = document.getElementById('cropper') as any;
+    if (cropper) {
+      const croppedData = cropper.getCroppedCanvas().toDataURL('image/png');
+      setCroppedImage(croppedData); // Store cropped image
+      setShowCropper(false); // Hide cropper after cropping
+      console.log('Cropped image:', croppedData);
+    }
+  };
+
+  // Reset the image and cropping tool
+  const handleReset = () => {
+    setImage(null);
+    setCroppedImage(null);
+    setShowCropper(false);
+    console.log('Reset image and cropper');
+  };
+
+
+
+
+  // const handleReset = () => {
+  //   setImage(null);
+  // };
+
+
 
   const getDistricts = async () => {
     const controller = new AbortController();
@@ -653,8 +765,6 @@ const CitizenApplication = () => {
     formSubmittedRef.current = false; // Reset form submission ref
   };
 
-  console.log("pattadarName: ", pattadarName);
-
   const onModalSubmit = async (data: ModalFormData) => {
     setSubmitLoading(true);
     setError(false);
@@ -723,8 +833,6 @@ const CitizenApplication = () => {
     return () => controller.abort(); // Cleanup on unmount
   };
 
-  console.log("ekhajanaPrice: ", ekhajanaPrice);
-
   if (loading) {
     return <Loader type="fullPage" />;
   }
@@ -734,6 +842,106 @@ const CitizenApplication = () => {
   return (
     <div className="form-container">
       <div className="form-title">Fill All The Details</div>
+
+      <Box className="upload-photo-container">
+      {loading && (
+        <Box>
+          <p>Loading video feed...</p>
+        </Box>
+      )}
+      {!image && isWebcamActive && !loading && (
+        <Box>
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            style={{ width: '100%', borderRadius: '8px', border: '2px solid #ccc' }}
+          />
+        </Box>
+      )}
+
+      <Box
+        className={`upload-photo-button ${modalErrors?.landPhoto ? 'upload-photo-button-error' : ''}`}
+        sx={{
+          ...(modalErrors?.landPhoto && {
+            border: '2px dashed #d32f2f',
+            borderColor: '#d32f2f',
+          }),
+        }}
+      >
+        {!image ? (
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{ width: '100%', height: '100%', fontSize: '16px' }}
+            onClick={handleCapture}
+            disabled={loading} // Disable button until the video is ready
+          >
+            Capture Photo
+          </Button>
+        ) : showCropper ? (
+          <Box>
+            <Cropper
+              id="cropper"
+              src={image}
+              style={{ height: 400, width: '100%' }}
+              initialAspectRatio={1}
+              aspectRatio={1}
+              guides={false}
+              cropBoxResizable={true}
+              cropBoxMovable={true}
+              background={false}
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleCrop}
+              sx={{ mt: 2 }}
+            >
+              Crop and Save
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={handleReset}
+              sx={{ mt: 2, ml: 2 }}
+            >
+              Reset
+            </Button>
+          </Box>
+        ) : (
+          <Box className="upload-photo-preview">
+            <img src={image} alt="Captured" style={{ maxWidth: '100%' }} />
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={handleReset}
+              sx={{
+                mt: 0.5,
+                textTransform: 'none',
+                borderColor: '#d32f2f',
+                color: '#d32f2f',
+                '&:hover': {
+                  borderColor: '#d32f2f',
+                  backgroundColor: 'rgba(211, 47, 47, 0.04)',
+                },
+              }}
+            >
+              Remove
+            </Button>
+          </Box>
+        )}
+      </Box>
+
+      {modalErrors?.landPhoto && (
+        <FormHelperText error sx={{ mt: 1, ml: 1 }}>
+          {modalErrors?.landPhoto.message}
+        </FormHelperText>
+      )}
+
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
+    </Box>
+    {/*  */}
 
       <div className="form-fields">
         <div className="form-row">
@@ -889,6 +1097,7 @@ const CitizenApplication = () => {
             )}
           />
         </div>
+        
       </div>
 
       {villageData.length > 0 ? (
@@ -1102,7 +1311,8 @@ const CitizenApplication = () => {
 
         {!isModalProceedClicked && (
           <>
-            {/* Upload Land Photo Section */}
+            
+            {/* Upload Land Photo Section 
             <div className="upload-photo-section">
               <Controller
                 name="landPhoto"
@@ -1116,6 +1326,7 @@ const CitizenApplication = () => {
                         type="file"
                         hidden
                         accept="image/*"
+                        capture="camera"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           field.onChange(file);
@@ -1184,13 +1395,13 @@ const CitizenApplication = () => {
                   </Box>
                 )}
               />
-            </div>
+            </div> */}
 
             {
               ekhajanaPrice > 0 && (
                 <div className="ekhajana-card">
                   <span className="ekhajana-label">
-                    Ekhajana Amount to be paid
+                    Ekhajana amount to be paid
                   </span>
                   <span className="ekhajana-amount">₹ {ekhajanaPrice.toFixed(2)}</span>
                 </div>
