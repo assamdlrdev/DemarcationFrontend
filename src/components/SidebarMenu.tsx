@@ -13,7 +13,7 @@ interface NavItem {
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", icon: "⊞", route: "/lm-dashboard" },
+  { label: "Dashboard", icon: "⊞", route: "/dashboard" },
   { label: "Logout", icon: "⊞", route: "" },
   // {
   //   label: "Land Records",
