@@ -8,7 +8,8 @@ interface ApplicationType {
   application_no: string;
   created_at: string;
   village: string;
-  status: "Active" | "Inactive" | "On Leave";
+  status: string;
+  status_name: string;
   action: any;
 }
 

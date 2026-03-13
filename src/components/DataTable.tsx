@@ -8,7 +8,8 @@ interface ApplicationType {
   application_no: string;
   created_at: string;
   village: string;
-  status: "Active" | "Inactive" | "On Leave";
+  status: string;
+  status_name: string;
   action: any;
 }
 
@@ -51,7 +52,9 @@ const columns: Column[] = [
 ];
 
 const statusStyles: Record<StatusKey, StatusStyle> = {
-  Active:   { bg: "#d1fae5", text: "#065f46", dot: "#10b981" },
+  Pending:   { bg: "#d1fae5", text: "#065f46", dot: "#10b981" },
+  A: { bg: "#d1fae5", text: "#065f46", dot: "#10b981" },
+  B: { bg: "#d1fae5", text: "#065f46", dot: "#10b981" },
   Inactive: { bg: "#fee2e2", text: "#991b1b", dot: "#ef4444" },
   "On Leave": { bg: "#fef3c7", text: "#92400e", dot: "#f59e0b" },
 };
@@ -265,7 +268,15 @@ const DataTable: React.FC<DatatableType> = ({info, handleBtnClick, title="Submit
 
                     {/* Status */}
                     <td style={styles.td}>
-                      <StatusBadge status={row.status} />
+                      <span style={{
+                        display: "inline-flex", alignItems: "center", gap: 6,
+                        background: "#d1fae5", color: "#065f46", //bg: "#d1fae5", text: "#065f46", dot: "#10b981"
+                        borderRadius: 20, padding: "3px 10px",
+                        fontSize: 12, fontWeight: 500,
+                      }}>
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", display: "inline-block" }} />
+                        {row.status_name}
+                      </span>
                     </td>
 
                     {/* Joined */}

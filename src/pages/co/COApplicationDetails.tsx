@@ -3,78 +3,17 @@ import TabbedView, { type TabInterface } from "../../components/TabbedView";
 import { useLocation, useNavigate } from "react-router-dom";
 import ApiService from "../../services/ApiService";
 import MapCo from "../../components/MapCo";
-import ApplicationDetailsCo from "../../components/ApplicationDetailsCo";
-
-type ApplicantType = {
-    address: string;
-    cir_code: string;
-    dag_no: string;
-    dist_code: string;
-    lot_no: string;
-    mobile_no: string;
-    mouza_pargona_code: string;
-    patta_no: string;
-    patta_type_code: string;
-    patta_type_name: string;
-    pdar_id: number;
-    pdar_name: string;
-    subdiv_code: string;
-    vill_townprt_code: string;
-};
-
-type PattadarType = {
-    address: string;
-    cir_code: string;
-    dag_no: string;
-    dist_code: string;
-    lot_no: string;
-    mobile_no: string;
-    mouza_pargona_code: string;
-    patta_no: string;
-    patta_type_code: string;
-    patta_type_name: string;
-    pdar_id: number;
-    subdiv_code: string;
-    vill_townprt_code: string;
-};
-
-type ApplicationType = {
-    app_dag_area_b: string;
-    app_dag_area_k: string;
-    app_dag_area_lc: string;
-    app_dag_area_g: string | null;
-    application_no: string;
-    bhunaksha_available: number;
-    cir_code: string;
-    cir_name: string;
-    dag_area_b: string;
-    dag_area_g: string | null;
-    dag_area_k: string;
-    dag_area_lc: string;
-    dag_no: string;
-    dist_code: string;
-    dist_name: string;
-    lot_name: string;
-    lot_no: string;
-    mouza_pargona_code: string;
-    mouza_pargona_name: string;
-    patta_no: string;
-    patta_type_code: string;
-    subdiv_code: string;
-    subdiv_name: string;
-    vill_townprt_code: string;
-    vill_townprt_name: string;
-    applicants: ApplicantType[];
-    pattadars: PattadarType[];
-};
+import ApplicationDetailsCo, { type ApplicationType } from "../../components/ApplicationDetailsCo";
+import Loader from "../../components/Loader";
 
 const COApplicationDetails: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const location = useLocation();
     const navigate = useNavigate();
-    const [application, setApplication] = useState<ApplicationType | null>(null);
+    const [application, setApplication] = useState<ApplicationType>(null);
     const [mapGeoJson, setMapGeoJson] = useState<string>('');
     const [dagNo, setDagNo] = useState<string>('');
+    const [hearingDate, setHearingDate] = useState<string>('');
 
     useEffect(() => {
         if(location.pathname === '/co-application-details') {
@@ -106,10 +45,10 @@ const COApplicationDetails: React.FC = () => {
             return;
         }
 
-        setApplication(response.data);
+        setApplication(response.data[0]);
         setDagNo(response.data?.dag_no);
 
-        console.log(response);
+        // console.log(response);
     };
 
     const getMap = async (id: string) => {
@@ -128,14 +67,47 @@ const COApplicationDetails: React.FC = () => {
         setMapGeoJson(response.data);
     };
 
+    const handleSubmit = async () => {
+        console.log(hearingDate);
+        if(!hearingDate) {
+            alert("Imputs not set!");
+            return;
+        }
+        if(application?.bhunaksha_available != 1) {
+            alert("Please update Bhunaksha dag first and come back!");
+            return;
+        }
+
+        const data = {
+            application_no: application.application_no,
+            hearing_date: hearingDate
+        };
+
+        setLoading(true);
+        const response = await ApiService.get('issue_notice', JSON.stringify(data));
+        setLoading(false);
+        
+        if(response.status != 'y') {
+            alert(response.msg);
+            return;
+        }
+        console.log(response);
+        navigate('/dashboard');
+        return;
+    };
+
+    const handleVerification = async () => {
+        console.log('field verification');
+    };
+
     return (
         <>
-            <TabbedView tabbedView={[
+            {!loading && <TabbedView tabbedView={[
                 {
                     id: "application_details",
                     label: "Application Details",
                     content: (
-                    <ApplicationDetailsCo />
+                    <ApplicationDetailsCo application={application} hearingDate={hearingDate} setHearingDate={setHearingDate} handleSubmit={handleSubmit} handleVerification={handleVerification} />
                     )
                 },
                 {
@@ -143,7 +115,8 @@ const COApplicationDetails: React.FC = () => {
                     label: "Map",
                     content: (<MapCo mapdata={mapGeoJson} dag_no={dagNo} />)
                 }
-            ]} />
+            ]} />}
+            {loading && <Loader type="fullPage" />}
         </>
     );
 };
