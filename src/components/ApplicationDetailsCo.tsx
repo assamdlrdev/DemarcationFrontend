@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
 
@@ -199,7 +201,7 @@ const styles = `
     color: green;
   }
 
-  danger-text {
+  .danger-text {
     color: red;
   }
 
@@ -286,8 +288,6 @@ type ApplicationDetailsCoType = {
 };
 
 const ApplicationDetailsCo: React.FC<ApplicationDetailsCoType> = ({application, hearingDate, setHearingDate, handleSubmit, handleVerification}) => {
-    console.log(application);
-
 
     return (
         <>

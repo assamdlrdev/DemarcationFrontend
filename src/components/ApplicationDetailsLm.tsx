@@ -204,6 +204,14 @@ const styles = `
   }
 
   .form-field { display: flex; flex-direction: column; }
+
+  .success-text {
+    color: green;
+  }
+
+  .danger-text {
+    color: red;
+  }
 `;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -352,6 +360,7 @@ const ApplicationDetailsLm: React.FC<ApplicationDetailsType> = ({applicantDetail
                     <th>Applied Dag Area</th>
                     <th>Patta Type</th>
                     <th>Patta No</th>
+                    <th>Bhunaksha Dag Availability</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -361,6 +370,7 @@ const ApplicationDetailsLm: React.FC<ApplicationDetailsType> = ({applicantDetail
                     <td>{dag.app_dag_area}</td>
                     <td>{dag.patta_type_name}</td>
                     <td>{dag.patta_no}</td>
+                    <td>{dag.bhunaksha_available == 1 ? (<p className="success-text">Available</p>) : (<p className="danger-text">Not Available</p>)}</td>
                   </tr>)}
                 </tbody>
               </table>

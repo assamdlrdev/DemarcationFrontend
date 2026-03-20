@@ -6,6 +6,8 @@ import ApiService from "../../services/ApiService";
 import Loader from "../../components/Loader";
 import ModalComponent from "../../components/Modal/modalComponent";
 import AlertModal from "../../components/AlertModal";
+import MapCo from "../../components/MapCo";
+import TabbedView from "../../components/TabbedView";
 
 // type AddressType = {
 //     id: string;
@@ -28,6 +30,8 @@ const LMApplicationDetails: React.FC = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState<boolean>(false);
     const [modalOpen, setModalOpen] = useState<boolean>(false);
+    const [mapGeoJson, setMapGeoJson] = useState<string>('');
+    const [dagNo, setDagNo] = useState<string>('');
 
     const [appAddress, setAppAddress] = useState<AddressType[]>([]);
     const [appContactNo, setAppContactNo] = useState<ContactType[]>([]);
@@ -37,17 +41,22 @@ const LMApplicationDetails: React.FC = () => {
 
     useEffect(() => {
         if(location.pathname == '/lm-application-details') {
-            getApplicationDetails();
+            initialize();
         }
     }, [location]);
 
-    const getApplicationDetails = async () => {
+    const initialize = () => {
         const params = new URLSearchParams(window.location.search);
         const id = params.get('id');
         if(!id) {
             navigate('/lm-dashboard');
             return;
         }
+        getApplicationDetails(id);
+        getMap(id);
+    };
+
+    const getApplicationDetails = async (id: string) => {
         const data = {
             id: id
         };
@@ -61,12 +70,29 @@ const LMApplicationDetails: React.FC = () => {
         }
 
         const responseData = response.data;
-        // console.log(responseData);
+        console.log(responseData);
         setLocationDetails([responseData.location_data]);
         setApplicationDetails([responseData.application_data]);
         setDagDetails(responseData.dag_data);
         setApplicantDetails(responseData.applicant_data);
         setPattadarDetails(responseData.pattadar_data);
+        setDagNo(responseData.dag_data[0]?.dag_no);
+    };
+
+    const getMap = async (id: string) => {
+        const data = {
+            id: id
+        };
+        setLoading(true);
+        const response = await ApiService.get('get_map', JSON.stringify(data));
+        setLoading(false);
+
+        if(response.status != 'y') {
+            alert(response.msg);
+            return;
+        }
+        console.log(response);
+        setMapGeoJson(response.data);
     };
 
     const handleApplicantAddr = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -144,6 +170,7 @@ const LMApplicationDetails: React.FC = () => {
     };
 
     const handleModalSubmit = async() => {
+        setModalOpen(false);
         const data = {
             application_details: JSON.stringify(applicationDetails),
             applicant_contact: JSON.stringify(appContactNo),
@@ -177,7 +204,23 @@ const LMApplicationDetails: React.FC = () => {
 
     return (
         <>
-            {!loading && <ApplicationDetailsLm applicantDetails={applicantDetails} pattadarDetails={pattadarDetails} dagDetails={dagDetails} applicationDetails={applicationDetails} locationDetails={locationDetails} handleApplicantAddr={handleApplicantAddr} handleApplicantContact={handleApplicantContact} handlePattadarAddr={handlePattadarAddr} handlePattadarContact={handlePattadarContact} appAddress={appAddress} appContactNo={appContactNo} pdarContactNo={pdarContactNo} pdarAddress={pdarAddress} remarks={remarks} setRemarks={setRemarks} handleSubmit={handleSubmit} />}
+            {!loading && <TabbedView tabbedView={[
+                {
+                    id: "application_details",
+                    label: "Application Details",
+                    content: (
+                    <ApplicationDetailsLm applicantDetails={applicantDetails} pattadarDetails={pattadarDetails} dagDetails={dagDetails} applicationDetails={applicationDetails} locationDetails={locationDetails} handleApplicantAddr={handleApplicantAddr} handleApplicantContact={handleApplicantContact} handlePattadarAddr={handlePattadarAddr} handlePattadarContact={handlePattadarContact} appAddress={appAddress} appContactNo={appContactNo} pdarContactNo={pdarContactNo} pdarAddress={pdarAddress} remarks={remarks} setRemarks={setRemarks} handleSubmit={handleSubmit} />
+                    )
+                },
+                {
+                    id: "map",
+                    label: "Map",
+                    content: (<MapCo mapdata={mapGeoJson} dag_no={dagNo} />)
+                }
+            ]} />}
+            {/* {!loading && <ApplicationDetailsLm applicantDetails={applicantDetails} pattadarDetails={pattadarDetails} dagDetails={dagDetails} applicationDetails={applicationDetails} locationDetails={locationDetails} handleApplicantAddr={handleApplicantAddr} handleApplicantContact={handleApplicantContact} handlePattadarAddr={handlePattadarAddr} handlePattadarContact={handlePattadarContact} appAddress={appAddress} appContactNo={appContactNo} pdarContactNo={pdarContactNo} pdarAddress={pdarAddress} remarks={remarks} setRemarks={setRemarks} handleSubmit={handleSubmit} />} */}
+
+
             {loading && <Loader type="fullPage" />}
             <AlertModal modalOpen={modalOpen} setModalOpen={setModalOpen} title="Warning!" message="Are you sure you want to proceed with the submission? This action cannot be undone." handleSubmit={handleModalSubmit} />
         </>

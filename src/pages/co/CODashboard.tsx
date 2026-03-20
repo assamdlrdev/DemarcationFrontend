@@ -44,9 +44,15 @@ const CODashboard: React.FC = () => {
         navigate(`/co-application-details?id=${e.currentTarget.id}`);
     };
 
+    const handleNotice = (e: any) => {
+        console.log(e.currentTarget.id);
+        navigate(`/notice?id=${e.currentTarget.id}`);
+
+    };
+
     return (
         <>
-            <DataTable info={applicationData} handleBtnClick={handleBtnClick} title="LRA passed Applications" />
+            <DataTable info={applicationData} handleBtnClick={handleBtnClick} title="LRA passed Applications" handleNotice={handleNotice} />
         </>
     );
 };

@@ -14,6 +14,7 @@ import CODashboard from './pages/co/CODashboard';
 import PublicLayout from './pages/layouts/PublicLayout';
 import LMApplicationDetails from './pages/lm/LMApplicationDetails';
 import COApplicationDetails from './pages/co/COApplicationDetails';
+import Notice from './pages/Notice';
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
             <Route element={<COLayout />}>
               <Route path="/co-dashboard" element={<CODashboard />} />
               <Route path="/co-application-details" element={<COApplicationDetails />}  />
+              <Route path="/notice" element={<Notice />} />
             </Route>
           </Routes>
 

@@ -29,19 +29,6 @@ interface StatusStyle {
   dot: string;
 }
 
-// ─── Data ────────────────────────────────────────────────────────────────────
-
-// const initialData: ApplicationType[] = [
-  // { serial_no: 1, application_no: "Aria Chen",      created_at: "Product Designer",    village: "Design",       status: "Active",   action: "Jan 2022" },
-  // { serial_no: 2, application_no: "Marcus Webb",    created_at: "Senior Engineer",     village: "Engineering",  status: "Active",   action: "Mar 2021" },
-  // { serial_no: 3, application_no: "Priya Nair",     created_at: "Data Analyst",        village: "Analytics",    status: "On Leave", action: "Jul 2023" },
-  // { serial_no: 4, application_no: "Leon Fischer",   created_at: "UX Researcher",       village: "Design",       status: "Active",   action: "Nov 2020" },
-  // { serial_no: 5, application_no: "Sofia Reyes",    created_at: "Engineering Manager", village: "Engineering",  status: "Active",   action: "Feb 2019" },
-  // { serial_no: 6, application_no: "Jin Park",       created_at: "Frontend Developer",  village: "Engineering",  status: "Inactive", action: "Sep 2022" },
-  // { serial_no: 7, application_no: "Amara Osei",     created_at: "Brand Strategist",    village: "Marketing",    status: "Active",   action: "May 2023" },
-  // { serial_no: 8, application_no: "Oliver Hunt",    created_at: "Data Scientist",      village: "Analytics",    status: "Active",   action: "Aug 2021" },
-// ];
-
 const columns: Column[] = [
   { key: "serial_no",       label: "Serial No",       sortable: true  },
   { key: "application_no",       label: "Application No",       sortable: true  },
@@ -110,11 +97,12 @@ type DatatableType = {
   info: ApplicationType[];
   handleBtnClick: (e: any) => void;
   title?: string;
+  handleNotice?: (e: any) => void | null;
 };
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
-const DataTable: React.FC<DatatableType> = ({info, handleBtnClick, title="Submitted Applications"}) => {
+const DataTable: React.FC<DatatableType> = ({info, handleBtnClick, title="Submitted Applications", handleNotice=null}) => {
   const [data, setData]                 = useState<ApplicationType[]>(info);
   const [sortKey, setSortKey]           = useState<keyof ApplicationType | null>(null);
   const [sortDir, setSortDir]           = useState<SortDir>("asc");
@@ -282,6 +270,7 @@ const DataTable: React.FC<DatatableType> = ({info, handleBtnClick, title="Submit
                     {/* Joined */}
                     <td style={{ ...styles.td, color: "#9e9590", fontSize: 13 }}>
                       <Button style={styles.btn} id={row.action} onClick={handleBtnClick}><label style={styles.btnLabel}>Go to Application</label></Button>
+                      {(row.status == 'B' && handleNotice !==null) && <Button style={{...styles.btn, margin: '0.3rem' }} id={row.application_no} onClick={handleNotice}><label style={styles.btnLabel}>Notice</label></Button>}
                     </td>
                   </tr>
                 ))

@@ -5,6 +5,7 @@ import ApiService from "../../services/ApiService";
 import MapCo from "../../components/MapCo";
 import ApplicationDetailsCo, { type ApplicationType } from "../../components/ApplicationDetailsCo";
 import Loader from "../../components/Loader";
+import AlertModal from "../../components/AlertModal";
 
 const COApplicationDetails: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(false);
@@ -14,6 +15,8 @@ const COApplicationDetails: React.FC = () => {
     const [mapGeoJson, setMapGeoJson] = useState<string>('');
     const [dagNo, setDagNo] = useState<string>('');
     const [hearingDate, setHearingDate] = useState<string>('');
+    const [modalOpen, setModalOpen] = useState<boolean>(false);
+    const [url, setUrl] = useState<string>('');
 
     useEffect(() => {
         if(location.pathname === '/co-application-details') {
@@ -68,7 +71,40 @@ const COApplicationDetails: React.FC = () => {
     };
 
     const handleSubmit = async () => {
-        console.log(hearingDate);
+        setUrl('issue_notice');
+        setModalOpen(true);
+    };
+
+    const handleVerification = async () => {
+        setUrl('send_for_field_verification');
+        setModalOpen(true);
+        // if(!hearingDate) {
+        //     alert("Imputs not set!");
+        //     return;
+        // }
+        // if(application?.bhunaksha_available != 1) {
+        //     alert("Please update Bhunaksha dag first and come back!");
+        //     return;
+        // }
+        // const data = {
+        //     application_no: application.application_no,
+        //     hearing_date: hearingDate
+        // };
+        // setLoading(true);
+        // const response = await ApiService.get('send_for_field_verification', JSON.stringify(data));
+        // setLoading(false);
+        
+        // if(response.status != 'y') {
+        //     alert(response.msg);
+        //     return;
+        // }
+        // console.log(response);
+        // navigate('/dashboard');
+        // return;
+    };
+
+    const handleModalSubmit = async() => {
+        setModalOpen(false);
         if(!hearingDate) {
             alert("Imputs not set!");
             return;
@@ -82,9 +118,9 @@ const COApplicationDetails: React.FC = () => {
             application_no: application.application_no,
             hearing_date: hearingDate
         };
-
+        
         setLoading(true);
-        const response = await ApiService.get('issue_notice', JSON.stringify(data));
+        const response = await ApiService.get(url, JSON.stringify(data));
         setLoading(false);
         
         if(response.status != 'y') {
@@ -94,10 +130,6 @@ const COApplicationDetails: React.FC = () => {
         console.log(response);
         navigate('/dashboard');
         return;
-    };
-
-    const handleVerification = async () => {
-        console.log('field verification');
     };
 
     return (
@@ -117,6 +149,7 @@ const COApplicationDetails: React.FC = () => {
                 }
             ]} />}
             {loading && <Loader type="fullPage" />}
+            <AlertModal modalOpen={modalOpen} setModalOpen={setModalOpen} title="Warning!" message="Are you sure you want to proceed with the submission? This action cannot be undone." handleSubmit={handleModalSubmit} />
         </>
     );
 };

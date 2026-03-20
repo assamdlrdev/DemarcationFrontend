@@ -12,6 +12,7 @@ const MapCo: React.FC<MapCoType> = ({mapdata, dag_no}) => {
 
     useEffect(() => {
         if (dag_no && mapdata?.features) {
+            console.log(dag_no);
             // const featureWithArea = calculateAreaByKide(mapdata, dag_no);
             // if (featureWithArea) {
             //     setMatchedFeatureWithArea(featureWithArea);
