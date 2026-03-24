@@ -1,5 +1,5 @@
 import type React from "react";
-import ApplicationDetailsLm, { type AddressType, type ContactType } from "../../components/ApplicationDetailsLm";
+import ApplicationDetailsLm, { type AddressType, type ApplicationType, type ContactType } from "../../components/ApplicationDetailsLm";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import ApiService from "../../services/ApiService";
@@ -24,7 +24,7 @@ const LMApplicationDetails: React.FC = () => {
     const [applicantDetails, setApplicantDetails] = useState<any[]>([]);
     const [pattadarDetails, setPattadarDetails] = useState<any[]>([]);
     const [dagDetails, setDagDetails] = useState<any[]>([]);
-    const [applicationDetails, setApplicationDetails] = useState<any[]>([]);
+    const [applicationDetails, setApplicationDetails] = useState<ApplicationType[]>([]);
     const [locationDetails, setLocationDetails] = useState<any[]>([]);
     const location = useLocation();
     const navigate = useNavigate();

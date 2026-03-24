@@ -233,10 +233,11 @@ type LocationType = {
   vill_townprt_code: string;
 };
 
-type ApplicationType = {
+export type ApplicationType = {
   aadhaar_verified: string;
   application_no: string;
   status: string;
+  bhunaksha_available: number;
 };
 
 export type AddressType = {
@@ -333,6 +334,7 @@ const ApplicationDetailsLm: React.FC<ApplicationDetailsType> = ({applicantDetail
                     <th>Application No</th>
                     <th>Aadhaar Verified</th>
                     <th>Status</th>
+                    <th>Bhunaksha Available</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -340,6 +342,7 @@ const ApplicationDetailsLm: React.FC<ApplicationDetailsType> = ({applicantDetail
                     <td>{app.application_no}</td>
                     <td>{app.aadhaar_verified}</td>
                     <td>{app.status}</td>
+                    <td>{app.bhunaksha_available == 1 ? (<p className="success-text">Available</p>) : (<p className="danger-text">Not Available</p>)}</td>
                   </tr>)}
                 </tbody>
               </table>
@@ -489,7 +492,7 @@ const ApplicationDetailsLm: React.FC<ApplicationDetailsType> = ({applicantDetail
               justifyContent: 'center'
 
             }}>
-              <button
+              {(applicationDetails[0]?.bhunaksha_available == 1) ? (<button
                 style={{
                   alignSelf: 'center',
                   padding: '12px 48px',
@@ -512,7 +515,9 @@ const ApplicationDetailsLm: React.FC<ApplicationDetailsType> = ({applicantDetail
                 onClick={handleSubmit}
               >
                 Submit
-              </button>
+              </button>) : (
+                <p style={{color: 'red'}}>Please Update in Bhunaksha and come back!</p>
+              )}
             </div>
           </div>
         </div>
