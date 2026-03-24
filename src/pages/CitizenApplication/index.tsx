@@ -237,7 +237,7 @@ const CitizenApplication = () => {
     return () => controller.abort(); // Cleanup on unmount
   };
 
-  const getPattadarList = async () => {
+  const getPattadarList = async (dagNo: string) => {
     const controller = new AbortController();
 
     const postData = {
@@ -248,7 +248,8 @@ const CitizenApplication = () => {
       lot_no: lotNo,
       vill_townprt_code: villTownprtCode,
       patta_no: pattaNo,
-      patta_type_code: pattaType
+      patta_type_code: pattaType,
+      dag_no: dagNo
     };
 
     try {
@@ -437,7 +438,7 @@ const CitizenApplication = () => {
       }]);
 
       setFieldLoading('pattadar');
-      getPattadarList();
+      getPattadarList(selectedDag.dag_no);
     }
   };
 
